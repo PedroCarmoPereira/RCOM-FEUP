@@ -45,7 +45,7 @@ int main(int argc, char** argv)
     newtio.c_lflag = 0;
 
     newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 5;   /* blocking read until 5 chars received */
+    newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
 
 
     tcflush(fd, TCIFLUSH);
@@ -55,16 +55,14 @@ int main(int argc, char** argv)
       exit(-1);
     }
 
-    for (i = 0; i < 255; i++) {
-      buf[i] = 'a';
-    }
-    
-    /*testing*/
-    buf[25] = '\n';
-    
-    res = write(fd,buf,255);   
+    gets(buf);
+    res = write(fd,buf,strlen(buf)); 
     printf("%d bytes written\n", res);
+    sleep(1);
+    res = read(fd, buf, 255);
+    printf(":%s:%d\n", buf, res);
     
+    sleep(1);
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
       exit(-1);
