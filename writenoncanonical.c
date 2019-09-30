@@ -5,12 +5,14 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include "macros.h"
 
 #define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
+
 
 volatile int STOP=FALSE;
 
@@ -55,13 +57,32 @@ int main(int argc, char** argv)
       exit(-1);
     }
 
-    gets(buf);
-    res = write(fd,buf,strlen(buf)); 
+    char teste = '\0';
+    printf("Teste: %d\n", teste);
+
+    char f, a, C, bcc;
+    f = SFD;
+    a = CR_RE;
+    C = SET;
+    //bcc = 0x00;
+    bcc = a^C;
+    printf("bcc %d\n", bcc);
+    buf[0] = f + 48;
+    buf[1] = a + 48;
+    buf[2] = C + 48;
+    buf[3] = bcc + 48;
+    buf[4] = f + 48;
+    int jik = 0;
+
+    printf("hex1: %s\n", buf);
+    res = write(fd,buf,5); 
     printf("%d bytes written\n", res);
     sleep(1);
+
+    //Re-lê
     res = read(fd, buf, 255);
-    printf(":%s:%d\n", buf, res);
-    
+    jik = 0;
+    printf("hex2: %s\n", buf);
     sleep(1);
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");

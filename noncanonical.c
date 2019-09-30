@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <termios.h>
 #include <stdio.h>
+#include "macros.h"
 
 #define BAUDRATE B38400
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
@@ -12,6 +13,19 @@
 #define TRUE 1
 
 volatile int STOP=FALSE;
+
+int parseFrame(char *frame){
+	if (frame[0] != SFD) return 1;
+
+	if (frame[1] != CE_RR && frame[1] != CR_RE) return 2;
+
+	if (frame[2] != SET) return 3;
+
+	if (frame[4] != SFD) return 4;
+
+	return 0;
+}
+
 
 int main(int argc, char** argv)
 {
@@ -52,13 +66,12 @@ int main(int argc, char** argv)
 
     printf("New termios structure set\n");
     
-    puts("Pre loop");
 
-      res = read(fd,buf,255);   /* returns after 5 chars have been input */
-      buf[res]=0;               /* so we can printf... */
-      printf(":%s:%d\n", buf, res);
+    res = read(fd,buf,255);   /* returns after 5 chars have been input */
+    buf[res]=0;               /* so we can printf... */
+    printf(":%s:%d\n", buf, res);
+    printf("RET CODE:%d\n", parseFrame(buf));
 
-    puts("Pos loop");
     res = write(fd,buf,strlen(buf));
     printf("%d bytes written\n", res);
 
