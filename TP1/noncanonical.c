@@ -14,19 +14,6 @@
 
 volatile int STOP=FALSE;
 
-int parseFrame(char *frame){
-	if (frame[0] != SFD) return 1;
-
-	if (frame[1] != CE_RR && frame[1] != CR_RE) return 2;
-
-	if (frame[2] != SET) return 3;
-
-	if (frame[4] != SFD) return 4;
-
-	return 0;
-}
-
-
 int main(int argc, char** argv)
 {
     int fd,c, res;
@@ -65,15 +52,54 @@ int main(int argc, char** argv)
     tcsetattr(fd,TCSANOW,&newtio);
 
     printf("New termios structure set\n");
-    
+    char rec;
+    int stop = 0, counter = 0;
+    while(!stop){
+    	read(fd, &rec, 1);
+    	switch (counter){
+    		case 0:
+    			puts("0");
+    			if(rec == SFD) counter++;
+    			printf("EXPECTED:%c, REC: %c\n", SFD, rec);
+    			break;
+    		case 1:
+    			puts("1");
+    			if(rec == CE_RR) counter++;
+    			printf("EXPECTED:%c, REC: %c\n", CE_RR, rec);
+    			break;
+    		case 2:
+    			puts("2");
+    			if(rec == SET) counter++;
+    			printf("EXPECTED:%c, REC: %c\n", SET, rec);
+    			break;
+            case 3:
+            	puts("3");
+            	printf("REC: %c\n", rec);
+                counter++;
+                break;
+            case 4:
+            	puts("4");
+                if(rec == SFD) {
+                	printf("EXPECTED:%c, REC: %c\n", SFD, rec);
+                    counter++;
+                    puts("Acabou como devia");
+                }
+                stop = 1;
+                break;
+            default:
+            	puts("default");
+                stop = 1;
+                break;
+    	}
+    }
 
-    res = read(fd,buf,255);   /* returns after 5 chars have been input */
-    buf[res]=0;               /* so we can printf... */
-    printf(":%s:%d\n", buf, res);
-    printf("RET CODE:%d\n", parseFrame(buf));
+    buf[0] = SFD;
+    buf[1] = CE_RR;
+    buf[2] = UA;
+    buf[3] = buf[2] ^ buf[1];
+    buf[4] = SFD;
 
-    res = write(fd,buf,strlen(buf));
-    printf("%d bytes written\n", res);
+    write(fd, buf, SUP_SIZE);
 
     sleep(1);
     tcsetattr(fd,TCSANOW,&oldtio);

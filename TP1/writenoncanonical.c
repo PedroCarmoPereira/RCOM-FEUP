@@ -60,29 +60,52 @@ int main(int argc, char** argv)
     char teste = '\0';
     printf("Teste: %d\n", teste);
 
-    char f, a, C, bcc;
+    char f, a, C, bcc, rec;
     f = SFD;
-    a = CR_RE;
+    a = CE_RR;
     C = SET;
-    //bcc = 0x00;
     bcc = a^C;
     printf("bcc %d\n", bcc);
-    buf[0] = f + 48;
-    buf[1] = a + 48;
-    buf[2] = C + 48;
-    buf[3] = bcc + 48;
-    buf[4] = f + 48;
+    buf[0] = f;
+    buf[1] = a;
+    buf[2] = C;
+    buf[3] = bcc;
+    buf[4] = f;
     int jik = 0;
 
-    printf("hex1: %s\n", buf);
-    res = write(fd,buf,5); 
+    res = write(fd,buf,SUP_SIZE); 
     printf("%d bytes written\n", res);
     sleep(1);
-
     //Re-lê
-    res = read(fd, buf, 255);
-    jik = 0;
-    printf("hex2: %s\n", buf);
+    int counter = 0, stop = 0;
+
+    while(!stop){
+    	read(fd, &rec, 1);
+    	switch (counter){
+    		case 0:
+    			if(rec == SFD) counter++;
+    			break;
+    		case 1:
+    			if(rec == CE_RR) counter++;
+    			break;
+    		case 2:
+    			if(rec == UA) counter++;
+    			break;
+            case 3:
+                counter++;
+                break;
+            case 4:
+                if(rec == SFD) {
+                    counter++;
+                    puts("Acabou como devia");
+                }
+                stop = 1;
+                break;
+            default:
+                stop = 1;
+                break;
+    	}
+    }
     sleep(1);
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
