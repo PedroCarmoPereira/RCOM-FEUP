@@ -4,7 +4,9 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <termios.h>
+#include <signal.h>
 #include <stdio.h>
+#include <errno.h>
 #include "macros.h"
 
 #define BAUDRATE B38400
@@ -13,8 +15,70 @@
 #define FALSE 0
 #define TRUE 1
 
+int try_counter = 0;
+int ping = 0;
 
 volatile int STOP=FALSE;
+
+int setUp(int fd){
+
+    fd = open(argv[1], O_RDWR | O_NOCTTY );
+    ping = 1;
+    int x = 0;
+    if(try_counter < TRIES){
+        try_counter++;
+        printf("%d\n", try_counter);
+        char BCC = CE_RR ^ SET;
+        char msg[5] = {SFD, CE_RR, SET, BCC, SFD};
+        x = write(fd, msg, SUP_SIZE);
+        if (x==-1) printf("FUCK: %d\n",errno);
+        printf("wrote %d bytes \n", x);
+        sleep(1);
+        alarm(3);
+        //Re-lê
+        int counter = 0;
+        char rec = 0;
+        int response_recieved = 0;
+        while(!STOP){
+            read(fd, &rec, 1);
+            if (ping){
+                ping = 0;
+                close(fd);
+                break;
+            } 
+            switch (counter){
+                case 0:
+                    if(rec == SFD) counter++;
+                    break;
+                case 1:
+                    if(rec == CE_RR) counter++;
+                    break;
+                case 2:
+                    if(rec == UA) counter++;
+                    break;
+                case 3:
+                    counter++;
+                    break;
+                case 4:
+                    if(rec == SFD) {
+                    counter++;
+                    puts("FINISHED AS EXPECTED");
+                    }
+                    STOP = 1;
+                    break;
+                default:
+                    STOP= 1;
+                    break;
+            }
+        }
+
+    }
+
+    else{
+        puts("FAILED TO ESTABLISH CONNECTION, EXITING");
+        exit(0);
+    }
+}
 
 int main(int argc, char** argv)
 {
@@ -57,55 +121,9 @@ int main(int argc, char** argv)
       exit(-1);
     }
 
-    char teste = '\0';
-    printf("Teste: %d\n", teste);
-
-    char f, a, C, bcc, rec;
-    f = SFD;
-    a = CE_RR;
-    C = SET;
-    bcc = a^C;
-    printf("bcc %d\n", bcc);
-    buf[0] = f;
-    buf[1] = a;
-    buf[2] = C;
-    buf[3] = bcc;
-    buf[4] = f;
-    int jik = 0;
-
-    res = write(fd,buf,SUP_SIZE); 
-    printf("%d bytes written\n", res);
-    sleep(1);
-    //Re-lê
-    int counter = 0, stop = 0;
-
-    while(!stop){
-    	read(fd, &rec, 1);
-    	switch (counter){
-    		case 0:
-    			if(rec == SFD) counter++;
-    			break;
-    		case 1:
-    			if(rec == CE_RR) counter++;
-    			break;
-    		case 2:
-    			if(rec == UA) counter++;
-    			break;
-            case 3:
-                counter++;
-                break;
-            case 4:
-                if(rec == SFD) {
-                    counter++;
-                    puts("Acabou como devia");
-                }
-                stop = 1;
-                break;
-            default:
-                stop = 1;
-                break;
-    	}
-    }
+    close(fd);
+    (void) signal(SIGALRM, setUp);
+    setUp(fd);
     sleep(1);
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");

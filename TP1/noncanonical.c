@@ -13,7 +13,6 @@
 #define TRUE 1
 
 volatile int STOP=FALSE;
-
 int main(int argc, char** argv)
 {
     int fd,c, res;
@@ -50,45 +49,35 @@ int main(int argc, char** argv)
 
     tcflush(fd, TCIFLUSH);
     tcsetattr(fd,TCSANOW,&newtio);
+	printf("New termios structure set\n");
 
-    printf("New termios structure set\n");
-    char rec;
-    int stop = 0, counter = 0;
-    while(!stop){
+	char rec;
+    int counter = 0;
+    while(!STOP){
     	read(fd, &rec, 1);
     	switch (counter){
     		case 0:
-    			puts("0");
     			if(rec == SFD) counter++;
-    			printf("EXPECTED:%c, REC: %c\n", SFD, rec);
     			break;
     		case 1:
-    			puts("1");
     			if(rec == CE_RR) counter++;
-    			printf("EXPECTED:%c, REC: %c\n", CE_RR, rec);
     			break;
     		case 2:
-    			puts("2");
     			if(rec == SET) counter++;
-    			printf("EXPECTED:%c, REC: %c\n", SET, rec);
     			break;
             case 3:
-            	puts("3");
-            	printf("REC: %c\n", rec);
                 counter++;
                 break;
             case 4:
-            	puts("4");
                 if(rec == SFD) {
-                	printf("EXPECTED:%c, REC: %c\n", SFD, rec);
                     counter++;
                     puts("Acabou como devia");
                 }
-                stop = 1;
+                STOP = 1;
                 break;
             default:
             	puts("default");
-                stop = 1;
+                STOP = 1;
                 break;
     	}
     }

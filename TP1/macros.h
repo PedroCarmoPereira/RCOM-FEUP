@@ -7,5 +7,6 @@
 #define UA 			0x07
 #define CE_RR 		0x03
 #define	CR_RE 		0x01
+#define TRIES		5
 
 #endif
