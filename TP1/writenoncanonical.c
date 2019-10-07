@@ -19,14 +19,19 @@ int try_counter = 0;
 
 volatile int STOP=FALSE;
 
+int retry(){
+    try_counter++;
+}
+
 int setUp(int fd){
 
 	puts("SETUP CALLED");
     try_counter++;
     int try = try_counter;
-    printf("Try %d\n", try);
+    printf("Try nº%d\n", try);
     int x = 0;
-    if(try_counter < TRIES){
+    
+    for (int i = 0; i < TRIES; i++){
         printf("%d\n", try_counter);
         char BCC = CE_RR ^ SET;
         char msg[5] = {SFD, CE_RR, SET, BCC, SFD};
@@ -35,41 +40,36 @@ int setUp(int fd){
 
         printf("wrote %d bytes \n", x);
         sleep(1);
-        int ttt = alarm(10);
+        int ttt = alarm(3);
         printf("Alarm called %d\n", ttt);
         //Re-lê
         int counter = 0;
         char rec = 0;
         int response_recieved = 0;
-        while(!STOP){
+        while(!STOP) {
             read(fd, &rec, 1);         
             switch (counter){
                 case 0:
-                	//puts("AAA");
                     if(rec == SFD) counter++;
                     break;
                 case 1:
-                	puts("BBB");
                     if(rec == CE_RR) counter++;
                     break;
                 case 2:
-                	puts("CCC");
                     if(rec == UA) counter++;
                     break;
                 case 3:
-                	puts("DDD");
                     counter++;
                     break;
                 case 4:
-                	puts("EEE");
                     if(rec == SFD) {
                     counter++;
                     puts("FINISHED AS EXPECTED");
                     }
                     STOP = 1;
+                    return 0;
                     break;
                 default:
-                	puts("FFF");
                     STOP= 1;
                     break;
             }
@@ -82,14 +82,11 @@ int setUp(int fd){
             //printf("try %d looping\n", try);
         }
 
-
-
+        try++;
     }
-
-    else{
-        puts("FAILED TO ESTABLISH CONNECTION, EXITING");
-        exit(0);
-    }
+    puts("FAILED TO ESTABLISH CONNECTION, EXITING");
+    exit(0);
+    
 }
 
 int main(int argc, char** argv)
@@ -133,7 +130,7 @@ int main(int argc, char** argv)
       exit(-1);
     }
 
-    (void) signal(SIGALRM, setUp);
+    (void) signal(SIGALRM, retry);
     setUp(fd);
     sleep(1);
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
