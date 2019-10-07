@@ -16,50 +16,52 @@
 #define TRUE 1
 
 int try_counter = 0;
-int ping = 0;
 
 volatile int STOP=FALSE;
 
 int setUp(int fd){
 
-    fd = open(argv[1], O_RDWR | O_NOCTTY );
-    ping = 1;
+	puts("SETUP CALLED");
+    try_counter++;
+    int try = try_counter;
+    printf("Try %d\n", try);
     int x = 0;
     if(try_counter < TRIES){
-        try_counter++;
         printf("%d\n", try_counter);
         char BCC = CE_RR ^ SET;
         char msg[5] = {SFD, CE_RR, SET, BCC, SFD};
         x = write(fd, msg, SUP_SIZE);
-        if (x==-1) printf("FUCK: %d\n",errno);
+        if (x==-1) printf("errno: %d\n",errno);
+
         printf("wrote %d bytes \n", x);
         sleep(1);
-        alarm(3);
+        int ttt = alarm(10);
+        printf("Alarm called %d\n", ttt);
         //Re-lê
         int counter = 0;
         char rec = 0;
         int response_recieved = 0;
         while(!STOP){
-            read(fd, &rec, 1);
-            if (ping){
-                ping = 0;
-                close(fd);
-                break;
-            } 
+            read(fd, &rec, 1);         
             switch (counter){
                 case 0:
+                	//puts("AAA");
                     if(rec == SFD) counter++;
                     break;
                 case 1:
+                	puts("BBB");
                     if(rec == CE_RR) counter++;
                     break;
                 case 2:
+                	puts("CCC");
                     if(rec == UA) counter++;
                     break;
                 case 3:
+                	puts("DDD");
                     counter++;
                     break;
                 case 4:
+                	puts("EEE");
                     if(rec == SFD) {
                     counter++;
                     puts("FINISHED AS EXPECTED");
@@ -67,10 +69,20 @@ int setUp(int fd){
                     STOP = 1;
                     break;
                 default:
+                	puts("FFF");
                     STOP= 1;
                     break;
             }
+
+            if (try != try_counter){
+        		sleep(3);
+            	puts("PING");
+                break;
+            }
+            //printf("try %d looping\n", try);
         }
+
+
 
     }
 
@@ -94,7 +106,7 @@ int main(int argc, char** argv)
       exit(1);
     }
 
-    fd = open(argv[1], O_RDWR | O_NOCTTY );
+    fd = open(argv[1], O_RDWR | O_NOCTTY | O_NONBLOCK );
     if (fd <0) {perror(argv[1]); exit(-1); }
 
     if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
@@ -110,8 +122,8 @@ int main(int argc, char** argv)
     /* set input mode (non-canonical, no echo,...) */
     newtio.c_lflag = 0;
 
-    newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
+    newtio.c_cc[VTIME]    = 2;   /* inter-character timer unused */
+    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
 
 
     tcflush(fd, TCIFLUSH);
@@ -121,7 +133,6 @@ int main(int argc, char** argv)
       exit(-1);
     }
 
-    close(fd);
     (void) signal(SIGALRM, setUp);
     setUp(fd);
     sleep(1);
