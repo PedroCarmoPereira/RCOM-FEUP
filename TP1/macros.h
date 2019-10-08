@@ -9,7 +9,7 @@
 #define	CR_RE 		0x01
 #define TRIES		3
 
-enum {
+enum state {
     START,
     FLAG_RCV,
     A_RCV,
