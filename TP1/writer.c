@@ -37,31 +37,36 @@ int setUp(){
         sleep(1);
         alarm(3);
         //Re-lê
-        state state = START;
+        enum state state = START;
         char rec = 0;
         while(!STOP){
             read(fd, &rec, 1);         
             switch (state){
                 case START:
                     if(rec == SFD) state = FLAG_RCV;
+                    printf("START ");
                     break;
                 case FLAG_RCV:
                     if(rec == CE_RR) state = A_RCV;
                     else if (rec != SFD) state = START;
+                    printf("FLAG_RCV ");
                     break;
                 case A_RCV:
                     if(rec == UA) state = C_RCV;
                     else if (rec == SFD) state = FLAG_RCV;
                     else state = START;
+                    printf("A_RCV ");
                     break;
                 case C_RCV:
                     if (rec == CE_RR ^ UA) state = BCC_RCV;
                     else if (rec == SFD) state = FLAG_RCV;
                     else state = START; 
+                    printf("C_RCV ");
                     break;
                 case BCC_RCV:
                     if(rec == SFD) state = END;
                     else state = START;
+                    printf("BCC ");
                     break;
                 case END:
                     STOP = 2;

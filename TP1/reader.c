@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 	printf("New termios structure set\n");
 
 	char rec;
-    state state = START;
+    enum state state = START;
     while(!STOP){
     	read(fd, &rec, 1);
     	switch (state){
