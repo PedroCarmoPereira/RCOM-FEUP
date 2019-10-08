@@ -52,34 +52,39 @@ int main(int argc, char** argv)
 	printf("New termios structure set\n");
 
 	char rec;
-    int counter = 0;
+    state state = START;
     while(!STOP){
     	read(fd, &rec, 1);
-    	switch (counter){
-    		case 0:
-    			if(rec == SFD) counter++;
-    			break;
-    		case 1:
-    			if(rec == CE_RR) counter++;
-    			break;
-    		case 2:
-    			if(rec == SET) counter++;
-    			break;
-            case 3:
-                counter++;
-                break;
-            case 4:
-                if(rec == SFD) {
-                    counter++;
+    	switch (state){
+                case START:
+                    if(rec == SFD) state = FLAG_RCV;
+                    break;
+                case FLAG_RCV:
+                    if(rec == CE_RR) state = A_RCV;
+                    else if (rec != SFD) state = START;
+                    break;
+                case A_RCV:
+                    if(rec == UA) state = C_RCV;
+                    else if (rec == SFD) state = FLAG_RCV;
+                    else state = START;
+                    break;
+                case C_RCV:
+                    if (rec == CE_RR ^ SET) state = BCC_RCV;
+                    else if (rec == SFD) state = FLAG_RCV;
+                    else state = START; 
+                    break;
+                case BCC_RCV:
+                    if(rec == SFD) state = END;
+                    else state = START;
+                    break;
+                case END:
+                    STOP = 1;
                     puts("Acabou como devia");
-                }
-                STOP = 1;
-                break;
-            default:
-            	puts("default");
-                STOP = 1;
-                break;
-    	}
+                    break;
+                default:
+                    STOP= 1;
+                    break;
+            }
     }
 
     buf[0] = SFD;

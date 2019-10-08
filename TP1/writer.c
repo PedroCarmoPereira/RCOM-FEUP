@@ -25,7 +25,7 @@ void handler(){try_counter++;}
 
 int setUp(){
     int x = 0;
-    while(try_counter <= TRIES && STOP != 2){
+    while(try_counter < TRIES && STOP != 2){
         STOP = 0;
         int try = try_counter;
         printf("%d\n", try_counter);
@@ -37,29 +37,35 @@ int setUp(){
         sleep(1);
         alarm(3);
         //Re-lê
-        int counter = 0;
+        state state = START;
         char rec = 0;
         while(!STOP){
             read(fd, &rec, 1);         
-            switch (counter){
-                case 0:
-                    if(rec == SFD) counter++;
+            switch (state){
+                case START:
+                    if(rec == SFD) state = FLAG_RCV;
                     break;
-                case 1:
-                    if(rec == CE_RR) counter++;
+                case FLAG_RCV:
+                    if(rec == CE_RR) state = A_RCV;
+                    else if (rec != SFD) state = START;
                     break;
-                case 2:
-                    if(rec == UA) counter++;
+                case A_RCV:
+                    if(rec == UA) state = C_RCV;
+                    else if (rec == SFD) state = FLAG_RCV;
+                    else state = START;
                     break;
-                case 3:
-                    counter++;
+                case C_RCV:
+                    if (rec == CE_RR ^ UA) state = BCC_RCV;
+                    else if (rec == SFD) state = FLAG_RCV;
+                    else state = START; 
                     break;
-                case 4:
-                    if(rec == SFD) {
-                    counter++;
-                    }
-                    puts("Acabou como devia");
+                case BCC_RCV:
+                    if(rec == SFD) state = END;
+                    else state = START;
+                    break;
+                case END:
                     STOP = 2;
+                    puts("Acabou como devia");
                     break;
                 default:
                     STOP= 1;
