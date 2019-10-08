@@ -21,11 +21,13 @@ int fd;
 
 volatile int STOP=FALSE;
 
+void handler(){try_counter++;}
+
 int setUp(){
-    try_counter++;
-    int try = try_counter;
     int x = 0;
-    if(try_counter <= TRIES){
+    while(try_counter <= TRIES && STOP != 2){
+        STOP = 0;
+        int try = try_counter;
         printf("%d\n", try_counter);
         char BCC = CE_RR ^ SET;
         char msg[5] = {SFD, CE_RR, SET, BCC, SFD};
@@ -57,7 +59,7 @@ int setUp(){
                     counter++;
                     }
                     puts("Acabou como devia");
-                    STOP = 1;
+                    STOP = 2;
                     break;
                 default:
                     STOP= 1;
@@ -66,12 +68,13 @@ int setUp(){
 
             if (try != try_counter){
                 printf("exiting try %d\n", try);
+                STOP = 1;
                 break;
             }
         }
     }
 
-    else{
+    if (STOP != 2){
         puts("FAILED TO ESTABLISH CONNECTION, EXITING");
         return -1;;
     }
@@ -120,8 +123,8 @@ int main(int argc, char** argv)
       exit(-1);
     }
 
-    (void) signal(SIGALRM, setUp);
-    setUp(fd);
+    (void) signal(SIGALRM, handler);
+    setUp();
     sleep(1);
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");
