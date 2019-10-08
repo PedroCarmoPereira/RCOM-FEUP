@@ -53,29 +53,32 @@ int main(int argc, char** argv)
 
 	char rec;
     enum state state = START;
+
     while(!STOP){
     	read(fd, &rec, 1);
     	switch (state){
                 case START:
                     if(rec == SFD) state = FLAG_RCV;
+			puts("START ");
                     break;
                 case FLAG_RCV:
                     if(rec == CE_RR) state = A_RCV;
                     else if (rec != SFD) state = START;
-                    break;
+			puts("FLAG_RCV ");                    
+			break;
                 case A_RCV:
-                    if(rec == UA) state = C_RCV;
+                    if(rec == SET) state = C_RCV;
                     else if (rec == SFD) state = FLAG_RCV;
-                    else state = START;
+                    else state = START; puts("A_RCV ");
                     break;
                 case C_RCV:
                     if (rec == CE_RR ^ SET) state = BCC_RCV;
                     else if (rec == SFD) state = FLAG_RCV;
-                    else state = START; 
+                    else state = START;  puts("C_RCV ");
                     break;
                 case BCC_RCV:
                     if(rec == SFD) state = END;
-                    else state = START;
+                    else state = START; puts("BCC_RCV ");
                     break;
                 case END:
                     STOP = 1;
