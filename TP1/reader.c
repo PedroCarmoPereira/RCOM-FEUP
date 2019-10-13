@@ -6,8 +6,8 @@
 #include <termios.h>
 #include <stdio.h>
 #include "macros.h"
+#include "datalink.h"
 
-#define BAUDRATE B38400
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
 #define FALSE 0
 #define TRUE 1
@@ -79,25 +79,19 @@ int main(int argc, char** argv)
     fd = open(argv[1], O_RDWR | O_NOCTTY );
     if (fd <0) {perror(argv[1]); exit(-1); }
 
-    tcgetattr(fd,&oldtio); /* save current port settings */
-
-    bzero(&newtio, sizeof(newtio));
-    newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
-    newtio.c_iflag = IGNPAR;
-    newtio.c_oflag = 0;
-
-    /* set input mode (non-canonical, no echo,...) */
-    newtio.c_lflag = 0;
-
-    newtio.c_cc[VTIME]    = 0;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 1;   /* blocking read until 5 chars received */
-
-    tcflush(fd, TCIFLUSH);
-    tcsetattr(fd,TCSANOW,&newtio);
+    int ret;
+    if ((ret = termios_setup(fd, &oldtio)) != 0){
+        printf("termios_setup failed with error code:%d\n", ret);
+        exit(-1);
+    }
 	printf("New termios structure set\n");
     llopen();
     sleep(1);
-    tcsetattr(fd,TCSANOW,&oldtio);
+    
+    if((ret = termios_reset(fd, &oldtio)) != 0){
+        printf("termios_reset failed with error code:%d\n", ret);
+        exit(-1);
+    }
     close(fd);
     return 0;
 }

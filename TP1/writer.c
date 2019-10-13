@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <stdio.h>
 #include <errno.h>
+
+#include "datalink.h"
 #include "macros.h"
 
 #define BAUDRATE B38400
@@ -106,36 +108,17 @@ int main(int argc, char** argv)
     fd = open(argv[1], O_RDWR | O_NOCTTY | O_NONBLOCK );
     if (fd <0) {perror(argv[1]); exit(-1); }
 
-    if ( tcgetattr(fd,&oldtio) == -1) { /* save current port settings */
-      perror("tcgetattr");
-      exit(-1);
+     int ret;
+    if ((ret = termios_setup(fd, &oldtio)) != 0){
+        printf("termios_setup failed with error code:%d\n", ret);
+        exit(-1);
     }
-
-    bzero(&newtio, sizeof(newtio));
-    newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
-    newtio.c_iflag = IGNPAR;
-    newtio.c_oflag = OPOST;
-
-    /* set input mode (non-canonical, no echo,...) */
-    newtio.c_lflag = 0;
-
-    newtio.c_cc[VTIME]    = 2;   /* inter-character timer unused */
-    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received */
-
-
-    tcflush(fd, TCIFLUSH);
-
-    if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
-      perror("tcsetattr");
-      exit(-1);
-    }
-
     (void) signal(SIGALRM, handler);
     llopen();
     sleep(1);
-    if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
-      perror("tcsetattr");
-      exit(-1);
+    if((ret = termios_reset(fd, &oldtio)) != 0){
+        printf("termios_reset failed with error code:%d\n", ret);
+        exit(-1);
     }
     close(fd);
     return 0;
