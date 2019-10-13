@@ -23,7 +23,7 @@ volatile int STOP=FALSE;
 
 void handler(){try_counter++;}
 
-int setUp(){
+int llopen(){
     int x = 0;
     while(try_counter < TRIES && STOP != 2){
         STOP = 0;
@@ -44,33 +44,28 @@ int setUp(){
             switch (state){
                 case START:
                     if(rec == SFD) state = FLAG_RCV;
-                    printf("START ");
                     break;
                 case FLAG_RCV:
                     if(rec == CE_RR) state = A_RCV;
                     else if (rec != SFD) state = START;
-                    printf("FLAG_RCV ");
                     break;
                 case A_RCV:
                     if(rec == UA) state = C_RCV;
                     else if (rec == SFD) state = FLAG_RCV;
                     else state = START;
-                    printf("A_RCV ");
                     break;
                 case C_RCV:
                     if (rec == CE_RR ^ UA) state = BCC_RCV;
                     else if (rec == SFD) state = FLAG_RCV;
                     else state = START; 
-                    printf("C_RCV ");
                     break;
                 case BCC_RCV:
                     if(rec == SFD) state = END;
                     else state = START;
-                    printf("BCC ");
                     break;
                 case END:
                     STOP = 2;
-                    puts("Acabou como devia");
+                    alarm(0);
                     break;
                 default:
                     STOP= 1;
@@ -90,6 +85,7 @@ int setUp(){
         return -1;;
     }
 
+    puts("Acabou como devia");
     return 0;
 }
 
@@ -135,7 +131,7 @@ int main(int argc, char** argv)
     }
 
     (void) signal(SIGALRM, handler);
-    setUp();
+    llopen();
     sleep(1);
     if ( tcsetattr(fd,TCSANOW,&oldtio) == -1) {
       perror("tcsetattr");

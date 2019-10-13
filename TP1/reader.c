@@ -13,9 +13,54 @@
 #define TRUE 1
 
 volatile int STOP=FALSE;
+
+int fd;
+
+int llopen(){
+    char rec;
+    enum state state = START;
+    while(!STOP){
+        read(fd, &rec, 1);
+        switch (state){
+                case START:
+                    if(rec == SFD) state = FLAG_RCV;
+                    break;
+                case FLAG_RCV:
+                    if(rec == CE_RR) state = A_RCV;
+                    else if (rec != SFD) state = START;                   
+            break;
+                case A_RCV:
+                    if(rec == SET) state = C_RCV;
+                    else if (rec == SFD) state = FLAG_RCV;
+                    else state = START;
+                    break;
+                case C_RCV:
+                    if (rec == CE_RR ^ SET) state = BCC_RCV;
+                    else if (rec == SFD) state = FLAG_RCV;
+                    else state = START;
+                    break;
+                case BCC_RCV:
+                    if(rec == SFD) state = END;
+                    else state = START;
+                    break;
+                case END:
+                    STOP = 1;
+                    puts("Acabou como devia");
+                    break;
+                default:
+                    STOP= 1;
+                    break;
+            }
+    }
+
+    char buf[5] = {SFD, CE_RR, UA, CE_RR ^ UA, SFD};
+    write(fd, buf, SUP_SIZE);
+    return 0;
+}
+
 int main(int argc, char** argv)
 {
-    int fd,c, res;
+    int c, res;
     struct termios oldtio,newtio;
     char buf[255];
 
@@ -50,54 +95,7 @@ int main(int argc, char** argv)
     tcflush(fd, TCIFLUSH);
     tcsetattr(fd,TCSANOW,&newtio);
 	printf("New termios structure set\n");
-
-	char rec;
-    enum state state = START;
-
-    while(!STOP){
-    	read(fd, &rec, 1);
-    	switch (state){
-                case START:
-                    if(rec == SFD) state = FLAG_RCV;
-			puts("START ");
-                    break;
-                case FLAG_RCV:
-                    if(rec == CE_RR) state = A_RCV;
-                    else if (rec != SFD) state = START;
-			puts("FLAG_RCV ");                    
-			break;
-                case A_RCV:
-                    if(rec == SET) state = C_RCV;
-                    else if (rec == SFD) state = FLAG_RCV;
-                    else state = START; puts("A_RCV ");
-                    break;
-                case C_RCV:
-                    if (rec == CE_RR ^ SET) state = BCC_RCV;
-                    else if (rec == SFD) state = FLAG_RCV;
-                    else state = START;  puts("C_RCV ");
-                    break;
-                case BCC_RCV:
-                    if(rec == SFD) state = END;
-                    else state = START; puts("BCC_RCV ");
-                    break;
-                case END:
-                    STOP = 1;
-                    puts("Acabou como devia");
-                    break;
-                default:
-                    STOP= 1;
-                    break;
-            }
-    }
-
-    buf[0] = SFD;
-    buf[1] = CE_RR;
-    buf[2] = UA;
-    buf[3] = buf[2] ^ buf[1];
-    buf[4] = SFD;
-
-    write(fd, buf, SUP_SIZE);
-
+    llopen();
     sleep(1);
     tcsetattr(fd,TCSANOW,&oldtio);
     close(fd);
