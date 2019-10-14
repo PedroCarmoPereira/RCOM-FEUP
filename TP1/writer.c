@@ -9,19 +9,15 @@
 #include <errno.h>
 
 #include "datalink.h"
-#include "macros.h"
 
-#define BAUDRATE B38400
 #define MODEMDEVICE "/dev/ttyS1"
 #define _POSIX_SOURCE 1 /* POSIX compliant source */
-#define FALSE 0
-#define TRUE 1
+
+volatile int STOP=FALSE;
 
 int try_counter = 0;
 
 int fd;
-
-volatile int STOP=FALSE;
 
 void handler(){try_counter++;}
 
@@ -31,49 +27,15 @@ int llopen(){
         STOP = 0;
         int try = try_counter;
         printf("%d\n", try_counter);
-        char BCC = CE_RR ^ SET;
-        char msg[5] = {SFD, CE_RR, SET, BCC, SFD};
-        x = write(fd, msg, SUP_SIZE);
-        if (x==-1) printf("errno: %d\n",errno);
-        printf("wrote %d bytes \n", x);
+        send_set(fd, 0);
         sleep(1);
         alarm(3);
         //Re-lê
         enum state state = START;
         char rec = 0;
         while(!STOP){
-            read(fd, &rec, 1);         
-            switch (state){
-                case START:
-                    if(rec == SFD) state = FLAG_RCV;
-                    break;
-                case FLAG_RCV:
-                    if(rec == CE_RR) state = A_RCV;
-                    else if (rec != SFD) state = START;
-                    break;
-                case A_RCV:
-                    if(rec == UA) state = C_RCV;
-                    else if (rec == SFD) state = FLAG_RCV;
-                    else state = START;
-                    break;
-                case C_RCV:
-                    if (rec == CE_RR ^ UA) state = BCC_RCV;
-                    else if (rec == SFD) state = FLAG_RCV;
-                    else state = START; 
-                    break;
-                case BCC_RCV:
-                    if(rec == SFD) state = END;
-                    else state = START;
-                    break;
-                case END:
-                    STOP = 2;
-                    alarm(0);
-                    break;
-                default:
-                    STOP= 1;
-                    break;
-            }
-
+            read(fd, &rec, 1);
+            sender_sm(&state, rec);
             if (try != try_counter){
                 printf("exiting try %d\n", try);
                 STOP = 1;
@@ -87,7 +49,7 @@ int llopen(){
         return -1;;
     }
 
-    puts("Acabou como devia");
+    puts("CONNECTION ESTABLISHED");
     return 0;
 }
 
