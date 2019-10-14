@@ -40,24 +40,7 @@ int main(int argc, char** argv)
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
-
-  /*
-    Open serial port device for reading and writing and not as controlling tty
-    because we don't want to get killed if linenoise sends CTRL-C.
-  */
-    /*  
-    fd = open(argv[1], O_RDWR | O_NOCTTY );
-    if (fd <0) {perror(argv[1]); exit(-1); }
-
-    int ret;
-    if ((ret = termios_setup(fd, &oldtio)) != 0){
-        printf("termios_setup failed with error code:%d\n", ret);
-        exit(-1);
-    }*/
-	//printf("New termios structure set\n");
-    /*llopen();
-    sleep(1);*/
-    llopen_reciever(argv[1]);
+    llopen(argv[1], 1);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);

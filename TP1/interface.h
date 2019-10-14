@@ -5,7 +5,7 @@ int llopen_sender(char * port);
 
 int llopen_reciever(char * port);
 
-//int llopen(int porta, int t_or_r);
+int llopen(char * port, int t_or_r);
 
 //int llwrite(int fd, char *buffer, int length);
 

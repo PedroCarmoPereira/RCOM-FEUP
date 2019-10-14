@@ -2,6 +2,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 #include "interface.h"
 #include "datalink.h"
 
@@ -26,7 +27,6 @@ int llopen_sender(char * port){
         exit(-1);
     }
     (void) signal(SIGALRM, handler);
-/*    llopen();*/
     while(try_counter < TRIES && STOP != 2){
         STOP = 0;
         int try = try_counter;
@@ -74,4 +74,10 @@ int llopen_reciever(char *port){
 
     send_ua(fd, 0);
     sleep(1);
+}
+
+int llopen(char * port, int t_or_r){
+	if (!t_or_r) llopen_sender(port);
+	else llopen_reciever(port);
+
 }
