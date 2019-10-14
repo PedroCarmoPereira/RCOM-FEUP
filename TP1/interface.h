@@ -1,12 +1,16 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
-int llopen(int porta, int t_or_r);
+int llopen_sender(char * port);
 
-int llwrite(int fd, char *buffer, int length);
+int llopen_reciever(char * port);
 
-int llread(int fd, char *buffer);
+//int llopen(int porta, int t_or_r);
 
-int llclose(int fd);
+//int llwrite(int fd, char *buffer, int length);
+
+//int llread(int fd, char *buffer);
+
+//int llclose(int fd);
 
 #endif
