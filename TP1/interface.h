@@ -11,6 +11,10 @@ int llopen(char * port, int t_or_r);
 
 //int llread(int fd, char *buffer);
 
-//int llclose(int fd);
+int llclose_sender(int fd);
+
+int llclose_reciever(int fd);
+
+//int llclose(int fd, int t_or_r);
 
 #endif

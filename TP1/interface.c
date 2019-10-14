@@ -39,7 +39,7 @@ int llopen_sender(char * port){
         char rec = 0;
         while(!STOP){
             read(fd, &rec, 1);
-            sender_sm(&state, rec);
+            sender_set_sm(&state, rec);
             if (try != try_counter){
                 printf("exiting try %d\n", try);
                 STOP = 1;
@@ -69,7 +69,7 @@ int llopen_reciever(char *port){
     enum state state = START;
     while(!STOP){
         read(fd, &rec, 1);
-        reciever_sm(&state, rec);
+        reciever_set_sm(&state, rec);
     }
 
     send_ua(fd, 0);
@@ -80,4 +80,30 @@ int llopen(char * port, int t_or_r){
 	if (!t_or_r) llopen_sender(port);
 	else llopen_reciever(port);
 
+}
+
+int llclose_sender(int fd){
+	send_disc(fd, 0, 0);
+	char rec;
+	STOP = 0;
+	state state = START;
+	while(!STOP){
+		read(fd, &rec, 1);
+		disc_sm(&state, rec, 0);
+	}
+	close(fd);
+	puts("SENDER DISCONNECTED");
+}
+
+int llclose_reciever(int fd){
+	STOP = 0;
+	state state = START;
+	char rec;
+	while(!STOP){
+		read(fd, &rec, 1);
+		disc_sm(&state, rec, 0);
+	}
+
+	send_disc(fd, 0, 1);
+	puts("RECIEVER DISCONNECTED");
 }

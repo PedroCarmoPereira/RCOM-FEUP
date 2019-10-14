@@ -7,6 +7,7 @@
 #define BAUDRATE B38400
 #define SFD 		0x7e
 #define SET 		0x03
+#define	DISC 		0x0b
 #define SUP_SIZE	5
 #define UA 			0x07
 #define CE_RR 		0x03
@@ -33,8 +34,12 @@ int send_set(int fd, int debug);
 
 int send_ua(int fd, int debug);
 
-void sender_sm(state *s, char rec);
+void sender_set_sm(state *s, char rec);
 
-void reciever_sm(state *s, char rec);
+void reciever_set_sm(state *s, char rec);
+
+int send_disc(int fd, int debug, int t_or_r);
+
+void disc_sm(state *s, char rec, int t_or_r);
 
 #endif

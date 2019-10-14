@@ -15,18 +15,6 @@ extern int fd;
 
 extern struct termios oldtio,newtio;
 
-/*
-int llopen(){
-    char rec;
-    enum state state = START;
-    while(!STOP){
-        read(fd, &rec, 1);
-        reciever_sm(&state, rec);
-    }
-
-    send_ua(fd, 0);
-    return 0;
-}*/
 
 int main(int argc, char** argv)
 {
@@ -41,11 +29,13 @@ int main(int argc, char** argv)
       exit(1);
     }
     llopen(argv[1], 1);
+    sleep(3);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);
         exit(-1);
     }
     close(fd);
+    //llclose_reciever(fd);
     return 0;
 }

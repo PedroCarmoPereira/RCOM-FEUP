@@ -84,7 +84,7 @@ int send_ua(int fd, int debug){
     return 0;
 }
 
-void sender_sm(state *state, char rec){
+void sender_set_sm(state *state, char rec){
     
     switch (*state){
         case START:
@@ -119,7 +119,7 @@ void sender_sm(state *state, char rec){
 }
 
 
-void reciever_sm(state *state, char rec){
+void reciever_set_sm(state *state, char rec){
 
      switch (*state){
         case START:
@@ -146,6 +146,70 @@ void reciever_sm(state *state, char rec){
         case END:
             STOP = 1;
             puts("SET RECIEVED");
+            break;
+        default:
+            STOP = 1;
+            break;
+    }
+}
+
+int send_disc(int fd, int debug, int t_or_r){
+    char A;
+    if(!t_or_r) A = CE_RR;
+    else A = CR_RE;
+    char BCC = A ^ SET;
+    char disc[5] = {SFD, A, DISC, BCC, SFD};
+    int w = write(fd, disc, SUP_SIZE);
+    if(debug){
+        if (w == -1) {
+            printf("Write failed with errno:%d\n",errno);
+            return -1;
+        }
+        else {
+            puts("Sent set:");
+            printf("Wrote: %d bytes \n", w);
+        }
+    }
+
+    sleep(1);
+    return 0;
+}
+
+void disc_sm(state *state, char rec, int t_or_r){
+    char A;
+    if(!t_or_r) A = CE_RR;
+    else A = CR_RE;
+    switch (*state){
+        case START:
+            if(rec == SFD) *state = FLAG_RCV;
+            puts("1");
+            break;
+        case FLAG_RCV:
+            puts("2");
+            if(rec == A) *state = A_RCV;
+            else if (rec != SFD) *state = START;                   
+            break;
+        case A_RCV:
+            puts("3");
+            if(rec == DISC) *state = C_RCV;
+            else if (rec == SFD) *state = FLAG_RCV;
+            else *state = START;
+            break;
+        case C_RCV:
+            puts("4");
+            if (rec == A ^ DISC) *state = BCC_RCV;
+            else if (rec == SFD) *state = FLAG_RCV;
+            else *state = START;
+            break;
+        case BCC_RCV:
+            puts("5");
+            if(rec == SFD) *state = END;
+            else *state = START;
+            break;
+        case END:
+            puts("6");
+            STOP = 1;
+            puts("DISC RECIEVED");
             break;
         default:
             STOP= 1;
