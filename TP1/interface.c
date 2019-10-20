@@ -83,15 +83,16 @@ int llopen(char * port, int t_or_r){
 }
 
 int llclose_sender(int fd){
+    tcflush(fd, 0);
 	send_disc(fd, 0, 0);
 	char rec;
 	STOP = 0;
 	state state = START;
+    sleep(1);
 	while(!STOP){
 		read(fd, &rec, 1);
 		disc_sm(&state, rec, 0);
 	}
-	close(fd);
 	puts("SENDER DISCONNECTED");
 }
 
@@ -101,9 +102,9 @@ int llclose_reciever(int fd){
 	char rec;
 	while(!STOP){
 		read(fd, &rec, 1);
-		disc_sm(&state, rec, 0);
+		disc_sm(&state, rec, 1);
 	}
-
+    sleep(1);
 	send_disc(fd, 0, 1);
 	puts("RECIEVER DISCONNECTED");
 }

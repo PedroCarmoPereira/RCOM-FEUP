@@ -30,12 +30,12 @@ int main(int argc, char** argv)
     }
     llopen(argv[1], 1);
     sleep(3);
+    llclose_reciever(fd);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);
         exit(-1);
     }
     close(fd);
-    //llclose_reciever(fd);
     return 0;
 }

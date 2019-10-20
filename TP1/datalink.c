@@ -177,37 +177,31 @@ int send_disc(int fd, int debug, int t_or_r){
 
 void disc_sm(state *state, char rec, int t_or_r){
     char A;
-    if(!t_or_r) A = CE_RR;
-    else A = CR_RE;
+    if(!t_or_r) A = CR_RE;
+    else A = CE_RR;
     switch (*state){
         case START:
             if(rec == SFD) *state = FLAG_RCV;
-            puts("1");
             break;
         case FLAG_RCV:
-            puts("2");
             if(rec == A) *state = A_RCV;
             else if (rec != SFD) *state = START;                   
             break;
         case A_RCV:
-            puts("3");
             if(rec == DISC) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case C_RCV:
-            puts("4");
             if (rec == A ^ DISC) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
-        case BCC_RCV:
-            puts("5");
+        case BCC_RCV:;
             if(rec == SFD) *state = END;
             else *state = START;
             break;
         case END:
-            puts("6");
             STOP = 1;
             puts("DISC RECIEVED");
             break;
