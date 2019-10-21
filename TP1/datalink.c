@@ -6,7 +6,9 @@
 
 #include "datalink.h"
 
-extern int STOP;
+extern int STOP0;
+extern int STOP1;
+extern int STOP2;
 
 int termios_setup_writer(int fd, struct termios * oldtio){
 
@@ -139,11 +141,11 @@ void sender_set_sm(state *state, char rec){
             else *state = START;
             break;
         case END:
-            STOP = 2;
+            STOP0 = 2;
             alarm(0);
             break;
         default:
-            STOP= 1;
+            STOP0 = 1;
             break;
     }
 }
@@ -173,11 +175,11 @@ void reciever_set_sm(state *state, char rec){
             else *state = START;
             break;
         case END:
-            STOP = 1;
+            STOP0 = 1;
             puts("SET RECIEVED");
             break;
         default:
-            STOP = 1;
+            STOP0 = 1;
             break;
     }
 }
@@ -275,42 +277,38 @@ int send_disc(int fd, int debug, int t_or_r){
 
 void disc_sm(state *state, char rec, int t_or_r){
     char A;
-    if(!t_or_r) A = CE_RR;
-    else A = CR_RE;
+    if(!t_or_r) A = CR_RE;
+    else A = CE_RR;
     switch (*state){
         case START:
             if(rec == SFD) *state = FLAG_RCV;
-            puts("1");
             break;
         case FLAG_RCV:
-            puts("2");
             if(rec == A) *state = A_RCV;
             else if (rec != SFD) *state = START;                   
             break;
         case A_RCV:
-            puts("3");
             if(rec == DISC) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case C_RCV:
-            puts("4");
             if (rec == A ^ DISC) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
-        case BCC_RCV:
-            puts("5");
+        case BCC_RCV:;
             if(rec == SFD) *state = END;
             else *state = START;
             break;
         case END:
-            puts("6");
-            STOP = 1;
+            if(!t_or_r) STOP1 = 2;
+            else STOP2 = 2;
             puts("DISC RECIEVED");
             break;
         default:
-            STOP= 1;
+            if(!t_or_r) STOP1 = 1;
+            else STOP2 = 1;
             break;
     }
 }
