@@ -12,6 +12,9 @@
 #define UA 			0x07
 #define CE_RR 		0x03
 #define	CR_RE 		0x01
+#define ESC         0x7d
+#define SFD_XOR     0x5e
+#define ESC_XOR     0x5d
 #define TRIES		3
 #define FALSE 0
 #define TRUE 1
@@ -26,7 +29,9 @@ typedef enum state {
 } state;
 
 /*AQUI VAI SE FAZER O QUE SE FAZIA N0 READER.C E WRITER.C*/
-int termios_setup(int fd, struct termios *oldtio);
+int termios_setup_writer(int fd, struct termios *oldtio);
+
+int termios_setup_reader(int fd, struct termios *oldtio);
 
 int termios_reset(int fd, struct termios *oldtio);
 

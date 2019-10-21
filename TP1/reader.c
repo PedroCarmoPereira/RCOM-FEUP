@@ -28,7 +28,17 @@ int main(int argc, char** argv)
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
-    llopen(argv[1], 1);
+    //llopen(argv[1], 1);
+
+    char test[4] = {0x11, 0x7e, 0x7d, 0x02};
+    char byte_stuffed[8];
+
+    int s = byte_stuffer(&test, 4, &byte_stuffed);
+
+    for (int i=0; i < s; i++){
+        printf("%x, ",byte_stuffed[i]);
+    }
+
     sleep(3);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){
@@ -36,6 +46,7 @@ int main(int argc, char** argv)
         exit(-1);
     }
     close(fd);
+   
     //llclose_reciever(fd);
     return 0;
 }

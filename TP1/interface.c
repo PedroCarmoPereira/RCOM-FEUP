@@ -22,7 +22,7 @@ int llopen_sender(char * port){
     if (fd <0) {perror(port); exit(-1); }
 
     int ret;
-    if ((ret = termios_setup(fd, &oldtio)) != 0){
+    if ((ret = termios_setup_writer(fd, &oldtio)) != 0){
         printf("termios_setup failed with error code:%d\n", ret);
         exit(-1);
     }
@@ -32,7 +32,7 @@ int llopen_sender(char * port){
         int try = try_counter;
         printf("%d\n", try_counter);
         send_set(fd, 0);
-        sleep(1);
+        //sleep(1);
         alarm(3);
         //Re-lê
         enum state state = START;
@@ -61,7 +61,7 @@ int llopen_reciever(char *port){
     if (fd <0) {perror(port); exit(-1); }
 
     int ret;
-    if ((ret = termios_setup(fd, &oldtio)) != 0){
+    if ((ret = termios_setup_reader(fd, &oldtio)) != 0){
         printf("termios_setup failed with error code:%d\n", ret);
         exit(-1);
     }
@@ -73,7 +73,7 @@ int llopen_reciever(char *port){
     }
 
     send_ua(fd, 0);
-    sleep(1);
+            //sleep(1);
 }
 
 int llopen(char * port, int t_or_r){
@@ -81,6 +81,39 @@ int llopen(char * port, int t_or_r){
 	else llopen_reciever(port);
 
 }
+
+int llwrite(int fd, char* buffer, int length) {
+    try_counter = 0;
+    STOP = FALSE;
+
+    while(try_counter < TRIES && STOP != 2){
+        STOP = 0;
+        int try = try_counter;
+        printf("%d\n", try_counter);
+        send_frame(fd, buffer, length);
+        sleep(1);
+        alarm(3);
+
+        char rec = 0;
+        while(!STOP){
+            read(fd, &rec, 1);
+            
+            if (try != try_counter){
+                printf("exiting try %d\n", try);
+                STOP = 1;
+                break;
+            }
+        }
+    }
+    
+    
+    return ;
+}
+
+/*int llread(int fd, char* buffer) {
+    
+    return 0;    
+}*/
 
 int llclose_sender(int fd){
 	send_disc(fd, 0, 0);

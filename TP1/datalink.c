@@ -1,4 +1,4 @@
-#include <strings.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -8,7 +8,7 @@
 
 extern int STOP;
 
-int termios_setup(int fd, struct termios * oldtio){
+int termios_setup_writer(int fd, struct termios * oldtio){
 
 	if(tcgetattr(fd, oldtio) == -1){
 		perror("tcgetattr");
@@ -24,7 +24,37 @@ int termios_setup(int fd, struct termios * oldtio){
     /* set input mode (non-canonical, no echo,...) */
     newtio.c_lflag = 0;
 
-    newtio.c_cc[VTIME]    = 2;   /* inter-character timer unused*/ 
+    newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused*/ 
+    newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received*/ 
+
+
+    tcflush(fd, TCIFLUSH);
+
+    if ( tcsetattr(fd,TCSANOW,&newtio) == -1) {
+    	perror("tcsetattr");
+    	return -2;
+    }
+
+    return 0;
+}
+
+int termios_setup_reader(int fd, struct termios * oldtio){
+
+	if(tcgetattr(fd, oldtio) == -1){
+		perror("tcgetattr");
+		return -1;
+	}
+
+	struct termios newtio;
+	bzero(&newtio, sizeof(newtio));
+	newtio.c_cflag = BAUDRATE | CS8 | CLOCAL | CREAD;
+    newtio.c_iflag = IGNPAR;
+    newtio.c_oflag = OPOST;
+
+    /* set input mode (non-canonical, no echo,...) */
+    newtio.c_lflag = 0;
+
+    newtio.c_cc[VTIME]    = 1;   /* inter-character timer unused*/ 
     newtio.c_cc[VMIN]     = 0;   /* blocking read until 5 chars received*/ 
 
 
@@ -118,7 +148,6 @@ void sender_set_sm(state *state, char rec){
     }
 }
 
-
 void reciever_set_sm(state *state, char rec){
 
      switch (*state){
@@ -152,6 +181,75 @@ void reciever_set_sm(state *state, char rec){
             break;
     }
 }
+
+int send_frame(int fd, char* buffer, int length, int s) {
+    char* data_bcc = malloc(1);
+    get_data_bcc(buffer, length, &data_bcc);
+
+    /** 
+    * TODO: Byte stuffing buffer 
+    */
+    char *byte_stuffed_buffer = malloc(2 * length);
+    int new_length = byte_stuffer(buffer, length, byte_stuffed_buffer);
+    
+    int frame_size = sizeof(SFD)*6 + new_length;
+    char* frame = malloc(frame_size);
+    /* frame - FLAG | Endereço | Controlo | DADOS | FLAG */
+    frame[0] = SFD;
+    frame[1] = CE_RR;
+    frame[2] = 0x01;
+    frame[3] = CE_RR ^ 0x01;
+    frame[4] = byte_stuffed_buffer;
+    frame[new_length + 4] =  data_bcc;
+    frame[new_length + 5] = SFD;
+
+    int w = write(fd, frame, frame_size);
+
+    /** 
+    * TODO: Increment S <- N(r)  OR  C <- alternate between 0x00 and 0x40 
+    * */
+
+    free(frame);
+    free(data_bcc);
+
+    return w;
+}
+
+int get_data_bcc(char *buffer, int length, char *bcc) {
+    *bcc = buffer[0];
+    for (int i = 1; i < length; i++)
+        *bcc = *bcc ^ buffer[i];
+    
+    return 0;
+}
+
+int byte_stuffer(char *buffer, int length, char *newBuffer) {
+
+    int j = 0;
+    for (int i = 0; i < length; i++){
+        if (buffer[i] == SFD){
+            newBuffer[j] = ESC;
+            newBuffer[++j] = SFD_XOR;
+        }
+        else if (buffer[i] == ESC){
+            newBuffer[j] = ESC;
+            newBuffer[++j] = ESC_XOR;
+        }
+        else newBuffer[j] = buffer[i];
+
+        j++;
+    }
+    
+    return j;
+}
+
+
+int read_response(char *response) {
+
+
+    return 0;
+}
+
 
 int send_disc(int fd, int debug, int t_or_r){
     char A;
