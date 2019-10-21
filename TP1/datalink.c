@@ -6,7 +6,9 @@
 
 #include "datalink.h"
 
-extern int STOP;
+extern int STOP0;
+extern int STOP1;
+extern int STOP2;
 
 int termios_setup(int fd, struct termios * oldtio){
 
@@ -109,11 +111,11 @@ void sender_set_sm(state *state, char rec){
             else *state = START;
             break;
         case END:
-            STOP = 2;
+            STOP0 = 2;
             alarm(0);
             break;
         default:
-            STOP= 1;
+            STOP0 = 1;
             break;
     }
 }
@@ -144,11 +146,11 @@ void reciever_set_sm(state *state, char rec){
             else *state = START;
             break;
         case END:
-            STOP = 1;
+            STOP0 = 1;
             puts("SET RECIEVED");
             break;
         default:
-            STOP = 1;
+            STOP0 = 1;
             break;
     }
 }
@@ -202,11 +204,13 @@ void disc_sm(state *state, char rec, int t_or_r){
             else *state = START;
             break;
         case END:
-            STOP = 1;
+            if(!t_or_r) STOP1 = 2;
+            else STOP2 = 2;
             puts("DISC RECIEVED");
             break;
         default:
-            STOP= 1;
+            if(!t_or_r) STOP1 = 1;
+            else STOP2 = 1;
             break;
     }
 }
