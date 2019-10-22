@@ -281,8 +281,21 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
     int j = 0;
     for (int i = 0; i < length; i++) {
         if (buffer[i] == ESC) {
+            if(i + 1 < length){
+                if (buffer[i+1] == SFD_XOR) {
+                    newBuffer[j] = SFD;
+                    i++;
+                }
 
+                else if (buffer[i+1] == ESC_XOR){
+                    newBuffer[j] = ESC;
+                    i++;
+                }
+            }
         }
+
+        else newBuffer[j] = buffer[i];
+        j++;
 
     }
     return j;
@@ -290,7 +303,7 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
 
 
 int sender_response_sm(state *state, char rec) {
-
+    /*
     switch (*state){
         case START:
             if(rec == SFD) *state = FLAG_RCV;
@@ -320,7 +333,9 @@ int sender_response_sm(state *state, char rec) {
         default:
             STOP0 = 1;
             break;
-    }
+    }*/
+
+    return 0;
 }
 
 
