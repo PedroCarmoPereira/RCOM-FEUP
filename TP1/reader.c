@@ -28,20 +28,24 @@ int main(int argc, char** argv)
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
-    //llopen(argv[1], 1);
-    //sleep(3);
+    llopen(argv[1], 1);
+    sleep(3);
     /** 
      * ! Testing send_frame();
      * ----------------------
     */
-    char test[4] = {0x11, 0x7e, 0x7d, 0x02};
-    
-    send_frame(0, test, 4, 1);
-    printf("\n");
-    send_frame(0, test, 4, 1);
+    /*char test[4] = {0x11, 0x7e, 0x7d, 0x02};
+    char stuffed[8];
+    int x = byte_stuffer(test, 4, stuffed);
+    for(int i = 0; i < x; i++) printf(" %x", stuffed[i]);
+    puts("");
+    char destuffed[8];
+    int y = byte_destuffer(stuffed, x, destuffed);
+    for(int i = 0; i < y; i++) printf(" %x", destuffed[i]);
+    puts("");*/
     /*------------------------*/
     
-    //llclose_reciever(fd);
+    llclose_reciever(fd);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);
