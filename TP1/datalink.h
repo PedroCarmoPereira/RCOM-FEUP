@@ -10,6 +10,10 @@
 #define	DISC 		0x0b
 #define SUP_SIZE	5
 #define UA 			0x07
+#define RR0         0x05
+#define RR1         0x85
+#define REJ0        0x01
+#define REJ1        0x81
 #define CE_RR 		0x03
 #define	CR_RE 		0x01
 #define ESC         0x7d

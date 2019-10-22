@@ -85,7 +85,7 @@ int llopen(char * port, int t_or_r){
 }
 
 int llwrite(int fd, char* buffer, int length) {
-    try_counter = 0;
+    /*try_counter = 0;
     STOP = FALSE;
 
     while(try_counter < TRIES && STOP != 2){
@@ -108,8 +108,8 @@ int llwrite(int fd, char* buffer, int length) {
         }
     }
     
-    
-    return ;
+    */
+    return 0;
 }
 
 /*int llread(int fd, char* buffer) {

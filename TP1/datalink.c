@@ -3,12 +3,15 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "datalink.h"
 
 extern int STOP0;
 extern int STOP1;
 extern int STOP2;
+char CONTROL_FIELD = 0x00;
 
 int termios_setup_writer(int fd, struct termios * oldtio){
 
@@ -184,45 +187,74 @@ void reciever_set_sm(state *state, char rec){
     }
 }
 
-int send_frame(int fd, char* buffer, int length, int s) {
+int send_frame(int fd, char* data, int data_length, int s) {
     char* data_bcc = malloc(1);
-    get_data_bcc(buffer, length, &data_bcc);
+    get_data_bcc(data, data_length, data_bcc);
 
-    /** 
-    * TODO: Byte stuffing buffer 
-    */
-    char *byte_stuffed_buffer = malloc(2 * length);
-    int new_length = byte_stuffer(buffer, length, byte_stuffed_buffer);
+    char *byte_stuffed_data = malloc(2 * data_length);
+    int new_length = byte_stuffer(data, data_length, byte_stuffed_data);
+
+    printf("new length: %d \n", new_length);
     
-    int frame_size = sizeof(SFD)*6 + new_length;
+    int frame_size = sizeof(char) * 6 + new_length;
+    printf("frame size: %d \n", frame_size);
     char* frame = malloc(frame_size);
-    /* frame - FLAG | Endereço | Controlo | DADOS | FLAG */
-    frame[0] = SFD;
-    frame[1] = CE_RR;
-    frame[2] = 0x01;
-    frame[3] = CE_RR ^ 0x01;
-    frame[4] = byte_stuffed_buffer;
-    frame[new_length + 4] =  data_bcc;
-    frame[new_length + 5] = SFD;
+    
+    if (build_frame(frame, frame_size, byte_stuffed_data, new_length, data_bcc) != 0){
+        //error
+        free(frame);
+        free(byte_stuffed_data);
+        free(data_bcc);
+
+        return -1;
+    }    
 
     int w = write(fd, frame, frame_size);
+  
+    for (int i = 0; i < frame_size; i++) {
+        printf("%x  ", frame[i]);
+    }
 
-    /** 
-    * TODO: Increment S <- N(r)  OR  C <- alternate between 0x00 and 0x40 
-    * */
+   if (CONTROL_FIELD == 0x00){
+       CONTROL_FIELD = 0x40;
+   } else if (CONTROL_FIELD == 0x40) {
+       CONTROL_FIELD = 0x00;
+   }
 
     free(frame);
+    free(byte_stuffed_data);
     free(data_bcc);
 
     return w;
 }
 
-int get_data_bcc(char *buffer, int length, char *bcc) {
+build_frame(char *frame, int frame_size, char *data, int data_size, char *data_bcc) {
+    /* frame - FLAG | Endereço | Controlo | DADOS | FLAG */
+    if (frame_size > data_size + 6)
+        return -1;
+
+    frame[0] = SFD;
+    frame[1] = CE_RR;
+    frame[2] = CONTROL_FIELD;
+    frame[3] = CE_RR ^ CONTROL_FIELD;
+
+    int i = 4;
+    for (int j = 0; j < data_size; j++) {
+        frame[i] = data[j];
+        i++;
+    }
+    
+    frame[i] =  *data_bcc;
+    frame[++i] = SFD;
+    
+    return 0;
+}
+
+void get_data_bcc(char *buffer, int length, char *bcc) {
     *bcc = buffer[0];
     for (int i = 1; i < length; i++)
         *bcc = *bcc ^ buffer[i];
     
-    return 0;
 }
 
 int byte_stuffer(char *buffer, int length, char *newBuffer) {
@@ -245,11 +277,50 @@ int byte_stuffer(char *buffer, int length, char *newBuffer) {
     return j;
 }
 
+int byte_destuffer(char *buffer, int length, char* newBuffer){
+    int j = 0;
+    for (int i = 0; i < length; i++) {
+        if (buffer[i] == ESC) {
 
-int read_response(char *response) {
+        }
+
+    }
+    return j;
+}
 
 
-    return 0;
+int sender_response_sm(state *state, char rec) {
+
+    switch (*state){
+        case START:
+            if(rec == SFD) *state = FLAG_RCV;
+            break;
+        case FLAG_RCV:
+            if(rec == CE_RR) *state = A_RCV;
+            else if (rec != SFD) *state = START;                   
+            break;
+        case A_RCV:
+            if(rec == RR0 || rec == RR1 || rec == ) *state = C_RCV;
+            else if (rec == SFD) *state = FLAG_RCV;
+            else *state = START;
+            break;
+        case C_RCV:
+            if (rec == CE_RR ^ SET) *state = BCC_RCV;
+            else if (rec == SFD) *state = FLAG_RCV;
+            else *state = START;
+            break;
+        case BCC_RCV:
+            if(rec == SFD) *state = END;
+            else *state = START;
+            break;
+        case END:
+            STOP0 = 1;
+            puts("SET RECIEVED");
+            break;
+        default:
+            STOP0 = 1;
+            break;
+    }
 }
 
 
