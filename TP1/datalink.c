@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -41,7 +42,6 @@ int termios_setup_writer(int fd, struct termios * oldtio){
 }
 
 int termios_setup_reader(int fd, struct termios * oldtio){
-
 	if(tcgetattr(fd, oldtio) == -1){
 		perror("tcgetattr");
 		return -1;
@@ -99,8 +99,10 @@ int send_set(int fd, int debug){
     return 0;
 }
 
-int send_ua(int fd, int debug){
-    char ua[5] = {SFD, CE_RR, UA, CE_RR ^ UA, SFD};
+int send_ua(int fd, int debug, int t_or_r){
+    int a = CR_RE;
+    if(t_or_r) a = CE_RR;
+    char ua[5] = {SFD, CE_RR, UA, a ^ UA, SFD};
     int w = write(fd, ua, SUP_SIZE);
     if(debug){
         if (w == -1) {
@@ -116,14 +118,16 @@ int send_ua(int fd, int debug){
     return 0;
 }
 
-void sender_set_sm(state *state, char rec){
+void ua_sm(state *state, char rec, int t_or_r){
     
+    int a = CE_RR;
+    if(t_or_r) a = CR_RE;
     switch (*state){
         case START:
             if(rec == SFD) *state = FLAG_RCV;
             break;
         case FLAG_RCV:
-            if(rec == CE_RR) *state = A_RCV;
+            if(rec = a) *state = A_RCV;
             else if (rec != SFD) *state = START;
             break;
         case A_RCV:
@@ -132,7 +136,7 @@ void sender_set_sm(state *state, char rec){
             else *state = START;
             break;
         case C_RCV:
-            if (rec == CE_RR ^ UA) *state = BCC_RCV;
+            if (rec == a ^ UA) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START; 
             break;
@@ -148,7 +152,7 @@ void sender_set_sm(state *state, char rec){
     }
 }
 
-void reciever_set_sm(state *state, char rec){
+void set_sm(state *state, char rec){
 
      switch (*state){
         case START:
@@ -178,6 +182,13 @@ void reciever_set_sm(state *state, char rec){
         default:
             break;
     }
+}
+
+void get_data_bcc(char *buffer, int length, char *bcc) {
+    *bcc = buffer[0];
+    for (int i = 1; i < length; i++)
+        *bcc = *bcc ^ buffer[i];
+    
 }
 
 int send_frame(int fd, char* data, int data_length, int s) {
@@ -221,7 +232,7 @@ int send_frame(int fd, char* data, int data_length, int s) {
     return w;
 }
 
-build_frame(char *frame, int frame_size, char *data, int data_size, char *data_bcc) {
+int build_frame(char *frame, int frame_size, char *data, int data_size, char *data_bcc) {
     /* frame - FLAG | Endereço | Controlo | DADOS | FLAG */
     if (frame_size > data_size + 6)
         return -1;
@@ -241,13 +252,6 @@ build_frame(char *frame, int frame_size, char *data, int data_size, char *data_b
     frame[++i] = SFD;
     
     return 0;
-}
-
-void get_data_bcc(char *buffer, int length, char *bcc) {
-    *bcc = buffer[0];
-    for (int i = 1; i < length; i++)
-        *bcc = *bcc ^ buffer[i];
-    
 }
 
 int byte_stuffer(char *buffer, int length, char *newBuffer) {

@@ -41,14 +41,19 @@ int termios_reset(int fd, struct termios *oldtio);
 
 int send_set(int fd, int debug);
 
-int send_ua(int fd, int debug);
+int send_ua(int fd, int debug, int t_or_r);
 
-void sender_set_sm(state *s, char rec);
+void ua_sm(state *s, char rec, int t_or_r);
 
-void reciever_set_sm(state *s, char rec);
+void set_sm(state *s, char rec);
 
 int send_disc(int fd, int debug, int t_or_r);
 
 void disc_sm(state *s, char rec, int t_or_r);
 
+int build_frame(char *frame, int frame_size, char *data, int data_size, char *data_bcc);
+
+int byte_stuffer(char *buffer, int length, char *newBuffer);
+
+int byte_destuffer(char *buffer, int length, char* newBuffer);
 #endif
