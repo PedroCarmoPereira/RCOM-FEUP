@@ -8,9 +8,6 @@
 
 #include "datalink.h"
 
-extern int STOP0;
-extern int STOP1;
-extern int STOP2;
 char CONTROL_FIELD = 0x00;
 
 int termios_setup_writer(int fd, struct termios * oldtio){
@@ -144,11 +141,9 @@ void sender_set_sm(state *state, char rec){
             else *state = START;
             break;
         case END:
-            STOP0 = 2;
             alarm(0);
             break;
         default:
-            STOP0 = 1;
             break;
     }
 }
@@ -178,11 +173,9 @@ void reciever_set_sm(state *state, char rec){
             else *state = START;
             break;
         case END:
-            STOP0 = 1;
             puts("SET RECIEVED");
             break;
         default:
-            STOP0 = 1;
             break;
     }
 }
@@ -303,7 +296,6 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
 
 
 int sender_response_sm(state *state, char rec) {
-    /*
     switch (*state){
         case START:
             if(rec == SFD) *state = FLAG_RCV;
@@ -313,12 +305,12 @@ int sender_response_sm(state *state, char rec) {
             else if (rec != SFD) *state = START;                   
             break;
         case A_RCV:
-            if(rec == RR0 || rec == RR1 || rec == ) *state = C_RCV;
+            if(rec == RR0 || rec == RR1 || rec == REJ0 || rec == REJ1) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case C_RCV:
-            if (rec == CE_RR ^ SET) *state = BCC_RCV;
+            if (rec == CE_RR ^ RR0 || rec == CE_RR ^ RR1 || rec == CE_RR ^ REJ0 || rec == CE_RR ^ REJ1) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
@@ -327,13 +319,11 @@ int sender_response_sm(state *state, char rec) {
             else *state = START;
             break;
         case END:
-            STOP0 = 1;
-            puts("SET RECIEVED");
+            puts("RESPONSE RECIEVED");
             break;
         default:
-            STOP0 = 1;
             break;
-    }*/
+    }
 
     return 0;
 }
@@ -388,13 +378,9 @@ void disc_sm(state *state, char rec, int t_or_r){
             else *state = START;
             break;
         case END:
-            if(!t_or_r) STOP1 = 2;
-            else STOP2 = 2;
             puts("DISC RECIEVED");
             break;
         default:
-            if(!t_or_r) STOP1 = 1;
-            else STOP2 = 1;
             break;
     }
 }
