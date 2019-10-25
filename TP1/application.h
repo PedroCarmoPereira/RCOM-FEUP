@@ -21,16 +21,22 @@ typedef enum tlv_type {
 	OTHER
 } tlv_type;
 
-typedef struct tlv_t{
+typedef struct tlv_t {
 	tlv_type type;
 	int length;
 	char *value;
 } tlv;
 
-typedef struct control_p_t{
+typedef struct control_p_t {
 	packet_type c;
 	tlv tlvs[2];
 } control_packet;
+
+
+typedef struct file_info_t {
+	int size;
+	char * name;
+} file_info;
 
 
 int parseArgs(application * app, int argc, char ** argv);
@@ -38,5 +44,9 @@ int parseArgs(application * app, int argc, char ** argv);
 int build_control_packet(packet_type type, control_packet * packet, char * filename);
 
 int free_control_packet(control_packet * packet);
+
+int validate_start_packet(control_packet packet, file_info *fi);
+
+int validate_end_packet(control_packet packet, file_info * fi);
 
 #endif

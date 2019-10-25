@@ -49,6 +49,28 @@ int free_control_packet(control_packet * packet){
 	return 0;
 }
 
+int validate_start_packet(control_packet packet, file_info * fi){
+	if(packet.c == START){
+		if(packet.tlvs[0].type == SIZE){
+			fi->size = atoi(packet.tlvs[0].value);
+			if(packet.tlvs[1].type == NAME){
+				fi->name = malloc(packet.tlvs[1].length);
+				strcpy(fi->name, packet.tlvs[1].value);
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
+int validate_end_packet(control_packet packet, file_info * fi){
+	if (packet.c == END)
+		if(packet.tlvs[0].type == SIZE && fi->size == atoi(packet.tlvs[0].value))
+			if(packet.tlvs[1].type == NAME) return strcmp(packet.tlvs[1].value, fi->name);
+	
+	return 1;
+}
+
 int main(int argc, char ** argv){
 	/*application app;
 	if ((argc < 2) || (strcmp("send", argv[1])!=0 && strcmp("receive", argv[1])!=0) ||
@@ -59,13 +81,18 @@ int main(int argc, char ** argv){
 
     parseArgs(&app, argc, argv);
 	*/
-	/*if (argc <= 1){
+	if (argc <= 1){
 		puts("WRONG NO. OF ARGS");
 		exit(-1);
 	}
-	control_packet test;
-	build_control_packet(2, &test, argv[1]);
-	printf("CONTROL PACKET\nTYPE: %d\nTLV0: %d, %d, %s\nTLV1: %d, %d, %s\n", test.c, test.tlvs[0].type, test.tlvs[0].length, test.tlvs[0].value, test.tlvs[1].type, test.tlvs[1].length, test.tlvs[1].value);
-	free_control_packet(&test);*/
+	control_packet test0, test1;
+	file_info fi;
+	build_control_packet(2, &test0, argv[1]);
+	build_control_packet(3, &test1, argv[1]);
+	validate_start_packet(test0, &fi);
+	int r = validate_end_packet(test1, &fi);
+	if(!r) printf("FILE %s, is %d bytes long!\n", fi.name, fi.size);
+	else puts("BAD END PACKET");
+	free_control_packet(&test0);
 	return 0;
 }
