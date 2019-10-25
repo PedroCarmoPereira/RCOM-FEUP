@@ -48,7 +48,7 @@ int main(int argc, char** argv)
     puts("");*/
     /*------------------------*/
     
-    llclose_reciever(fd);
+    llclose(fd, 1);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);

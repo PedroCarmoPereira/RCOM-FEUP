@@ -38,7 +38,7 @@ int main(int argc, char** argv)
     int ret;
     llopen(argv[1], 0);
     sleep(3);
-    llclose_sender(fd);
+    llclose(fd, 0);
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);
         exit(-1);

@@ -86,9 +86,9 @@ int llopen(char * port, int t_or_r){
 	else llopen_reciever(port);
 
 }
-
+/*
 int llwrite(int fd, char* buffer, int length) {
-    /*try_counter = 0;
+    try_counter = 0;
     STOP = FALSE;
 
     while(try_counter < TRIES && STOP != 2){
@@ -111,9 +111,9 @@ int llwrite(int fd, char* buffer, int length) {
         }
     }
     
-    */
+    
     return 0;
-}
+}*/
 
 /*int llread(int fd, char* buffer) {
     
@@ -174,7 +174,18 @@ int llclose_reciever(int fd){
             }
         }
         
-        if (state1 == END)  puts("RECEIVER DISCONNECTED");
-        else puts("RECEIVER FAILED TO DISCONNECT PROPERLY");
+        if (state1 == END) {
+            puts("RECEIVER DISCONNECTED");
+            return 0;
+        }
+        else{
+            puts("RECEIVER FAILED TO DISCONNECT PROPERLY");
+            return 1;
+        }
     }
+}
+
+int llclose(int fd, int t_or_r){
+    if(!t_or_r) llclose_sender(fd);
+    else llclose_reciever(fd);
 }
