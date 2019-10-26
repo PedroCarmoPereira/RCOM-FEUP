@@ -9,6 +9,9 @@
 #include "application.h"
 #include "interface.h"
 
+int max_frame_size = 64; //NOTA: ESTE VALOR DEVE SER INTRODUZIDO PELO USER, PARA JA ESTAMOS A USAR O MIN_SIZE DAS FRAMES DE INTERNET IRL
+int sequence_number = 0;
+
 int parseArgs(application * app, int argc,  char ** argv){
 	app->fileDescriptor = open(argv[2], O_RDWR | O_NOCTTY);
 	if (strcmp("send", argv[1]) == 0) app->stat = TRANSMITTER;
@@ -71,6 +74,22 @@ int validate_end_packet(control_packet packet, file_info * fi){
 	return 1;
 }
 
+int build_data_packet(data_packet * packet, char * buff, int size){
+	packet->c = DATA;
+	packet->data = malloc(sizeof(char *));
+	packet->sequence_number = sequence_number % 255;
+	packet->l1 = size / 255;
+	packet->l2 = size % 255;
+	for (int i = 0; i < size; i++) packet->data[i] = buff[i];
+	sequence_number++;
+	return 0;
+}
+
+int free_data_packet(data_packet * packet){
+	free(packet->data);
+	return 0;
+}
+
 int main(int argc, char ** argv){
 	/*application app;
 	if ((argc < 2) || (strcmp("send", argv[1])!=0 && strcmp("receive", argv[1])!=0) ||
@@ -81,18 +100,11 @@ int main(int argc, char ** argv){
 
     parseArgs(&app, argc, argv);
 	*/
-	if (argc <= 1){
-		puts("WRONG NO. OF ARGS");
-		exit(-1);
-	}
-	control_packet test0, test1;
-	file_info fi;
-	build_control_packet(2, &test0, argv[1]);
-	build_control_packet(3, &test1, argv[1]);
-	validate_start_packet(test0, &fi);
-	int r = validate_end_packet(test1, &fi);
-	if(!r) printf("FILE %s, is %d bytes long!\n", fi.name, fi.size);
-	else puts("BAD END PACKET");
-	free_control_packet(&test0);
+	if (argc && argv[0]) puts("PLACEHOLDER");
+	data_packet p;
+	char buf[255] = "LOREM IPSUM SIN DOLOR";
+	build_data_packet(&p, buf, strlen(buf));
+	printf("DATA PACKET:\nTYPE:%d\tSEQ_NO:%d\tL1L2:%d %d\nDATA: %s \n", p.c, p.sequence_number, p.l1, p.l2, p.data);
+	free_data_packet(&p);
 	return 0;
 }

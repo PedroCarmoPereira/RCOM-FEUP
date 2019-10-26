@@ -38,6 +38,13 @@ typedef struct file_info_t {
 	char * name;
 } file_info;
 
+typedef struct data_packet_t {
+	packet_type c;
+	char sequence_number;
+	int l1, l2;
+	char * data;
+} data_packet;
+
 
 int parseArgs(application * app, int argc, char ** argv);
 
@@ -48,5 +55,13 @@ int free_control_packet(control_packet * packet);
 int validate_start_packet(control_packet packet, file_info *fi);
 
 int validate_end_packet(control_packet packet, file_info * fi);
+
+//void send_control_packet(control_packet packet, application *app); USA O LLWRITE PARA MANDAR UM PACOTE
+
+int build_data_packet(data_packet * packet, char * buff, int size);
+
+int free_data_packet(data_packet * packet);
+
+//void send_data_packet(data_packet * packet, application *app);
 
 #endif
