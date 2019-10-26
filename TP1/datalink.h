@@ -3,25 +3,37 @@
 
 #include <termios.h>
 
+#define BIT(n) (0x01<<(n))
+#define BAUDRATE        B38400
+#define SFD 		    0x7e
+#define SET 		    0x03
+#define	DISC 		    0x0b
+#define SUP_SIZE	    5
+#define UA 			    0x07
+#define RR              0x05
+#define RR0             0x05
+#define RR1             0x85
+#define REJ             0x01
+#define REJ0            0x01
+#define REJ1            0x81
+#define CE_RR 		    0x03
+#define	CR_RE 		    0x01
+#define ESC             0x7d
+#define SFD_XOR         0x5e
+#define ESC_XOR         0x5d
+#define MAX_FRAME_SIZE  1024    
+#define TRIES		    3
+#define FALSE           0
+#define TRUE            1
 
-#define BAUDRATE B38400
-#define SFD 		0x7e
-#define SET 		0x03
-#define	DISC 		0x0b
-#define SUP_SIZE	5
-#define UA 			0x07
-#define RR0         0x05
-#define RR1         0x85
-#define REJ0        0x01
-#define REJ1        0x81
-#define CE_RR 		0x03
-#define	CR_RE 		0x01
-#define ESC         0x7d
-#define SFD_XOR     0x5e
-#define ESC_XOR     0x5d
-#define TRIES		3
-#define FALSE 0
-#define TRUE 1
+typedef struct datalink {
+    char port[12];
+    int baudRate;
+    unsigned int sequenceNumber;
+    unsigned int timeout;
+    unsigned int numRetransmitions;
+} datalink;
+
 
 typedef enum state {
     START,
@@ -29,6 +41,7 @@ typedef enum state {
     A_RCV,
     C_RCV,
     BCC_RCV,
+    DATA_RCV,
     END
 } state;
 
@@ -51,9 +64,17 @@ int send_disc(int fd, int debug, int t_or_r);
 
 void disc_sm(state *s, char rec, int t_or_r);
 
+int send_frame(int fd, char* data, int data_length);
+
 int build_frame(char *frame, int frame_size, char *data, int data_size, char *data_bcc);
+
+void get_data_bcc(char *buffer, int length, char *bcc);
 
 int byte_stuffer(char *buffer, int length, char *newBuffer);
 
 int byte_destuffer(char *buffer, int length, char* newBuffer);
+
+int sender_read_response_sm(state *state, char rec);
+
+int analyze_response(char *rec);
 #endif

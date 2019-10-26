@@ -11,6 +11,13 @@
 
 char CONTROL_FIELD = 0x00;
 
+datalink info;
+
+void set_default_settings() {
+    info.sequenceNumber = 0;
+    info.timeout = 3;
+}
+
 int termios_setup_writer(int fd, struct termios * oldtio){
 
 	if(tcgetattr(fd, oldtio) == -1){
@@ -191,12 +198,12 @@ void get_data_bcc(char *buffer, int length, char *bcc) {
     
 }
 
-int send_frame(int fd, char* data, int data_length, int s) {
+int send_frame(int fd, char* data, int data_length) {
     char* data_bcc = malloc(1);
     get_data_bcc(data, data_length, data_bcc);
 
     char *byte_stuffed_data = malloc(2 * data_length);
-    int new_length = byte_stuffer(data, data_length, byte_stuffed_data);
+    int new_data_length = byte_stuffer(data, data_length, byte_stuffed_data);
 
     printf("new length: %d \n", new_length);
     
@@ -204,7 +211,7 @@ int send_frame(int fd, char* data, int data_length, int s) {
     printf("frame size: %d \n", frame_size);
     char* frame = malloc(frame_size);
     
-    if (build_frame(frame, frame_size, byte_stuffed_data, new_length, data_bcc) != 0){
+    if (build_frame(frame, frame_size, byte_stuffed_data, new_data_length, data_bcc) != 0){
         //error
         free(frame);
         free(byte_stuffed_data);
@@ -219,10 +226,10 @@ int send_frame(int fd, char* data, int data_length, int s) {
         printf("%x  ", frame[i]);
     }
 
-   if (CONTROL_FIELD == 0x00){
-       CONTROL_FIELD = 0x40;
-   } else if (CONTROL_FIELD == 0x40) {
-       CONTROL_FIELD = 0x00;
+   if (info.sequenceNumber == 0){
+       info.sequenceNumber = 1;
+   } else if (info.sequenceNumber == 1) {
+       info.sequenceNumber = 0;
    }
 
     free(frame);
@@ -236,10 +243,15 @@ int build_frame(char *frame, int frame_size, char *data, int data_size, char *da
     /* frame - FLAG | Endereço | Controlo | DADOS | FLAG */
     if (frame_size > data_size + 6)
         return -1;
+    
+    char control_field;
+    if (info.sequenceNumber == 0)
+        control_field = 0x00;
+    else control_field = 0x40;
 
     frame[0] = SFD;
     frame[1] = CE_RR;
-    frame[2] = CONTROL_FIELD;
+    frame[2] = control_field;
     frame[3] = CE_RR ^ CONTROL_FIELD;
 
     int i = 4;
@@ -299,7 +311,7 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
 }
 
 
-int sender_response_sm(state *state, char rec) {
+int sender_read_response_sm(state *state, char rec) {
     switch (*state){
         case START:
             if(rec == SFD) *state = FLAG_RCV;
@@ -309,11 +321,11 @@ int sender_response_sm(state *state, char rec) {
             else if (rec != SFD) *state = START;                   
             break;
         case A_RCV:
-            if(rec == RR0 || rec == RR1 || rec == REJ0 || rec == REJ1) *state = C_RCV;
+            if((rec & (~BIT(7))) == RR || (rec & (~BIT(7))) == REJ) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
-        case C_RCV:
+        case C_RCV: 
             if (rec == CE_RR ^ RR0 || rec == CE_RR ^ RR1 || rec == CE_RR ^ REJ0 || rec == CE_RR ^ REJ1) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
@@ -330,6 +342,141 @@ int sender_response_sm(state *state, char rec) {
     }
 
     return 0;
+}
+
+int read_frame_sm(state *state, char rec) {
+    switch (*state) {
+    case START:
+        if (rec= SFD) *state = FLAG_RCV;
+        break;
+    case FLAG_RCV:
+        if(rec == CE_RR) *state = A_RCV;
+        else if (rec != SFD) *state = START;                   
+        break;
+    case A_RCV:
+        if((rec & (~BIT(7))) == 0x00) *state = C_RCV;
+        else if (rec == SFD) *state = FLAG_RCV;
+        else *state = START;
+        break;
+    case C_RCV:
+        if (rec == CE_RR ^ RR0 || rec == CE_RR ^ RR1 || rec == CE_RR ^ REJ0 || rec == CE_RR ^ REJ1) *state = BCC_RCV;
+        else if (rec == SFD) *state = FLAG_RCV;
+        else *state = START;
+        break;
+    case BCC_RCV:
+        *state = DATA_RCV;
+        break;
+    case DATA_RCV:
+        if (rec == SFD) *state = END;
+        break;
+    case END:
+        puts("RESPONSE RECIEVED");
+        break;
+    default:
+        break;
+    }
+
+    return 0;
+}
+
+int analyze_response(char *rec) {
+
+    char control = rec[2] & (~BIT(7));
+    int seqNumber;
+    if (rec[2] & BIT(7) != 0)
+        seqNumber = 1;
+    else seqNumber = 0;
+    
+    if (control == RR){
+        if (seqNumber == info.sequenceNumber)
+            return 0;
+    }
+
+    return -1;
+}
+
+int destuff_frame(char *rec, int length, char* destuffed_frame){
+    return byte_destuffer(rec, length, destuffed_frame);
+}
+
+int analyze_frame(char *frame, int frame_length) {
+    char control_field = frame[2];
+
+    int sequenceNumber;
+    if (control_field == 0x40) 
+        sequenceNumber = 1
+    else if (control_field == 0x00)
+        sequenceNumber = 0;
+
+    int data_length = frame_length - 6;
+    char *data = &frame[4];
+    char bcc_field = frame[frame_length - 2];    
+    char new_bcc;
+    get_data_bcc(data, data_length, &new_bcc);
+
+    if (new_bcc == bcc_field) {
+        if (sequenceNumber == info.sequenceNumber){
+            // RR and ACCEPT DATA
+            return 0;
+        }
+        else 
+            // RR and REJECT DATA
+            return 1;
+        } 
+    } 
+    else {
+        if (sequenceNumber == info.sequenceNumber){
+            keep = 0; // REJ and REJECT DATA
+            return -1;
+        }
+        else {
+            keep = 0; // RR and REJECT DATA
+            return 1;
+        } 
+
+    }
+
+    return keep;
+}
+
+int get_frame_data(char *frame, int length, char *data){
+    int j = 0
+    for (int i = 4; i < length - 3; i++) {
+        data[j] = frame[i];
+        j++;
+    }
+
+    return j;
+}
+
+int build_response(char *response, int response_type) {
+    response[0] = SFD;
+    response[1] = CR_RE;
+     
+    if (response_type >= 0) { // ReceiverReady
+        if (info.sequenceNumber == 0){
+            info.sequenceNumber = 1;
+            response[2] = 0x40;
+        }
+        else if (info.sequenceNumber == 1){
+            info.sequenceNumber = 0;
+            response[2] = 0x00;
+        }
+    }
+    else { // Reject
+        if (info.sequenceNumber == 0)
+            response[2] = 0x00;
+        else if (info.sequenceNumber == 1)
+            response[2] = 0x40;
+    }
+
+    response[3] = CR_RE ^ response[2];
+    response[4] = SFD;
+    return 0;
+}
+
+int send_response(int fd, char *response){
+    return write(fd, response, SUP_SIZE);
 }
 
 

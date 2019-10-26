@@ -31,6 +31,7 @@ int main(int argc, char** argv)
       printf("Usage:\tnserial SerialPort\n\tex: nserial /dev/ttyS1\n");
       exit(1);
     }
+
     llopen(argv[1], 1);
     sleep(3);
     /** 
@@ -47,13 +48,18 @@ int main(int argc, char** argv)
     for(int i = 0; i < y; i++) printf(" %x", destuffed[i]);
     puts("");*/
     /*------------------------*/
+
+    for (int i = 0; i < 3; i++){
+        char *frame = malloc()
+        llread(fd, )
+    }
     
     llclose_reciever(fd);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);
         exit(-1);
-    }*/
+    }
     close(fd);
     return 0;
 }
