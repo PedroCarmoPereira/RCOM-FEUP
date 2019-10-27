@@ -120,18 +120,6 @@ int llwrite(int fd, char* buffer, int length) {
                 break;
             }
         }
-        /*while (i < 5){
-            int add = read(fd, &rec[i], 1);
-            if (add == 1){
-                i++;
-                printf(" read one\n");
-            }
-        }
-
-        for (int j = 0; j < 5; j++)
-            printf("  %d- %x", j, rec[j]);
-        puts(" ");
-        break;*/
     }
 
 
@@ -252,7 +240,18 @@ int llclose_reciever(int fd){
             }
         }
         
-        if (state1 == END)  puts("RECEIVER DISCONNECTED");
-        else puts("RECEIVER FAILED TO DISCONNECT PROPERLY");
+        if (state1 == END) {
+            puts("RECEIVER DISCONNECTED");
+            return 0;
+        }
+        else{
+            puts("RECEIVER FAILED TO DISCONNECT PROPERLY");
+            return 1;
+        }
     }
+}
+
+int llclose(int fd, int t_or_r){
+    if(!t_or_r) llclose_sender(fd);
+    else llclose_reciever(fd);
 }

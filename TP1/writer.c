@@ -43,7 +43,7 @@ int main(int argc, char** argv)
     
     llwrite(fd, data, 3);
 
-    llclose_sender(fd);
+    llclose(fd, 0);
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);
         exit(-1);

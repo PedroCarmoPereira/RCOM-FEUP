@@ -20,6 +20,6 @@ int llclose_sender(int fd);
 
 int llclose_reciever(int fd);
 
-//int llclose(int fd, int t_or_r);
+int llclose(int fd, int t_or_r);
 
 #endif
