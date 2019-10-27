@@ -1,5 +1,5 @@
 CFLAGS	= -Wall	-Wextra
-OBJECTS1	=	application.o
+OBJECTS1	=	application.o interface.o datalink.o
 
 all:	nserial
 
@@ -9,6 +9,10 @@ nserial: $(OBJECTS1)
 
 
 application.o: application.h
+
+interface.o: interface.h
+
+datalink.o: datalink.h
 
 clean:
 	rm *.o nserial

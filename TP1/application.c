@@ -5,6 +5,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include <string.h>
+#include <unistd.h>
 
 #include "application.h"
 #include "interface.h"
@@ -13,13 +15,19 @@ int max_frame_size = 64; //NOTA: ESTE VALOR DEVE SER INTRODUZIDO PELO USER, PARA
 int sequence_number = 0;
 
 int parseArgs(application * app, int argc,  char ** argv){
-	app->fileDescriptor = open(argv[2], O_RDWR | O_NOCTTY);
-	if (strcmp("send", argv[1]) == 0) app->stat = TRANSMITTER;
-	else app->stat = RECEIVER;
-	if (argc < 3 && app->stat == TRANSMITTER) {
-		puts("ERROR: NO INPUT FILE SPECIFIED");
-		return -1;
+	if (strcmp("send", argv[1]) == 0 && argc == 4){ 
+		app->fileDescriptor = open(argv[3], O_RDWR | O_NOCTTY);
+		app->stat = TRANSMITTER;
+		app->port = malloc(sizeof(char *));
+		strcpy(app->port, argv[2]);
 	}
+	else if(strcmp("receive", argv[1]) == 0 && argc == 3){
+		app->stat = RECEIVER;
+		app->port = malloc(sizeof(char *));
+		strcpy(app->port, argv[2]);
+	}
+
+	else return 1;
 	
 	return 0;
 }
@@ -91,20 +99,28 @@ int free_data_packet(data_packet * packet){
 }
 
 int main(int argc, char ** argv){
-	/*application app;
+	application app;
 	if ((argc < 2) || (strcmp("send", argv[1])!=0 && strcmp("receive", argv[1])!=0) ||
   	     ((strcmp("/dev/ttyS0", argv[2])!=0) && (strcmp("/dev/ttyS1", argv[2])!=0) )) {
-      printf("Usage:\tnserial send_or_recieve SerialPort\n\tex: nserial send <port> <file>\n or: nserial receive <port>\n");
+      printf("Usage:\tnserial send_or_recieve SerialPort\n\tex: nserial send <port> <file>\n\tor: nserial receive <port>\n");
       exit(1);
     }
 
-    parseArgs(&app, argc, argv);
-	*/
-	if (argc && argv[0]) puts("PLACEHOLDER");
-	data_packet p;
-	char buf[255] = "LOREM IPSUM SIN DOLOR";
-	build_data_packet(&p, buf, strlen(buf));
-	printf("DATA PACKET:\nTYPE:%d\tSEQ_NO:%d\tL1L2:%d %d\nDATA: %s \n", p.c, p.sequence_number, p.l1, p.l2, p.data);
-	free_data_packet(&p);
+    if(parseArgs(&app, argc, argv)) {
+    	puts("INCORRECT ARGUMENTS");
+    	exit(-1);
+    }
+
+    if(app.stat == TRANSMITTER){
+    	llopen(app.port, 0);
+    	sleep(1);
+    	llclose(0);
+    }
+
+    else {
+    	llopen(app.port, 1);
+    	sleep(1);
+    	llclose(1);
+    }
 	return 0;
 }

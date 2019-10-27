@@ -28,7 +28,7 @@
 
 typedef struct datalink {
     char port[12];
-    int baudRate;
+    unsigned int baudRate;
     unsigned int sequenceNumber;
     unsigned int timeout;
     unsigned int numRetransmitions;
@@ -77,4 +77,17 @@ int byte_destuffer(char *buffer, int length, char* newBuffer);
 int sender_read_response_sm(state *state, char rec);
 
 int analyze_response(char *rec);
+
+int read_frame_sm(state *state, char rec);
+
+int destuff_frame(char *rec, int length, char* destuffed_frame);
+
+int analyze_frame(char *frame, int frame_length);
+
+int get_frame_data(char *frame, int length, char *data);
+
+int build_response(char *response, int response_type);
+
+int send_response(int fd, char *response);
+
 #endif

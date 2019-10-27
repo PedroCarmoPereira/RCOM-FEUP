@@ -134,7 +134,7 @@ void ua_sm(state *state, char rec, int t_or_r){
             if(rec == SFD) *state = FLAG_RCV;
             break;
         case FLAG_RCV:
-            if(rec = a) *state = A_RCV;
+            if(rec == a) *state = A_RCV;
             else if (rec != SFD) *state = START;
             break;
         case A_RCV:
@@ -143,7 +143,7 @@ void ua_sm(state *state, char rec, int t_or_r){
             else *state = START;
             break;
         case C_RCV:
-            if (rec == a ^ UA) *state = BCC_RCV;
+            if (rec == (a ^ UA)) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START; 
             break;
@@ -175,7 +175,7 @@ void set_sm(state *state, char rec){
             else *state = START;
             break;
         case C_RCV:
-            if (rec == CE_RR ^ SET) *state = BCC_RCV;
+            if (rec == (CE_RR ^ SET)) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
@@ -311,8 +311,7 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
 }
 
 
-int sender_read_response_sm(state *state, char re) {
-    char rec = (unsigned char) re;
+int sender_read_response_sm(state *state, char rec) {
     switch (*state){
         case START:
             puts("start");
@@ -326,13 +325,13 @@ int sender_read_response_sm(state *state, char re) {
             break;
         case A_RCV:
             puts("a_rcv");printf("%x, RR1:%x\n", rec, RR1);
-            if ((rec & RR) == RR || (rec & REJ == REJ)) *state = C_RCV;
+            if ((rec & RR) == RR || ((rec & REJ) == REJ)) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case C_RCV:
             puts("c_rcv");printf("%x\n", rec);
-            if (rec == CR_RE ^ RR0 || rec == CR_RE ^ RR1 || rec == CR_RE ^ REJ0 || rec == CR_RE ^ REJ1) *state = BCC_RCV;
+            if (rec == (char) (CR_RE ^ RR0) || rec == (char) (CR_RE ^ RR1) || rec == (char) (CR_RE ^ REJ0) || rec == (char) (CR_RE ^ REJ1)) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
@@ -354,7 +353,7 @@ int sender_read_response_sm(state *state, char re) {
 int read_frame_sm(state *state, char rec) {
     switch (*state) {
     case START:
-        if (rec= SFD) *state = FLAG_RCV;
+        if (rec == SFD) *state = FLAG_RCV;
         break;
     case FLAG_RCV:
         if(rec == CE_RR) *state = A_RCV;
@@ -366,7 +365,7 @@ int read_frame_sm(state *state, char rec) {
         else *state = START;
         break;
     case C_RCV:
-        if (rec == CE_RR ^ RR0 || rec == CE_RR ^ RR1 || rec == CE_RR ^ REJ0 || rec == CE_RR ^ REJ1) *state = BCC_RCV;
+        if (rec == (char) (CE_RR ^ RR0) || rec == (char) (CE_RR ^ RR1) || rec == (char) (CE_RR ^ REJ0) || rec == (char) (CE_RR ^ REJ1)) *state = BCC_RCV;
         else if (rec == SFD) *state = FLAG_RCV;
         else *state = START;
         break;
@@ -389,8 +388,8 @@ int read_frame_sm(state *state, char rec) {
 int analyze_response(char *rec) {
 
     char control = rec[2] & (~BIT(7));
-    int seqNumber;
-    if (rec[2] & BIT(7) != 0)
+    unsigned int seqNumber;
+    if ((rec[2] & BIT(7)) != 0)
         seqNumber = 1;
     else seqNumber = 0;
     
@@ -409,7 +408,7 @@ int destuff_frame(char *rec, int length, char* destuffed_frame){
 int analyze_frame(char *frame, int frame_length) {
     char control_field = frame[2];
 
-    int sequenceNumber;
+    unsigned int sequenceNumber;
     if (control_field == 0x40) 
         sequenceNumber = 1;
     else if (control_field == 0x00)
@@ -523,7 +522,7 @@ void disc_sm(state *state, char rec, int t_or_r){
             else *state = START;
             break;
         case C_RCV:
-            if (rec == A ^ DISC) *state = BCC_RCV;
+            if (rec == (A ^ DISC)) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;

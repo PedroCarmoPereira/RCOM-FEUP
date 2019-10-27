@@ -37,7 +37,6 @@ int llopen_sender(char * port){
         state = START;
         int try = try_counter;
         send_set(fd, 0);
-        //sleep(1);
         alarm(3);
         //Re-lê
         char rec = 0;
@@ -58,6 +57,7 @@ int llopen_sender(char * port){
     }
 
     puts("TRANSMITTER READY");
+    return 0;
 }
 
 int llopen_reciever(char *port){
@@ -80,11 +80,12 @@ int llopen_reciever(char *port){
     
     send_ua(fd, 0, 1);
     puts("RECEIVER READY");
+    return 0;
 }
 
 int llopen(char * port, int t_or_r){
-	if (!t_or_r) llopen_sender(port);
-	else llopen_reciever(port);
+	if (!t_or_r) return llopen_sender(port);
+	else return llopen_reciever(port);
 
 }
 
@@ -100,7 +101,6 @@ int llwrite(int fd, char* buffer, int length) {
         send_frame(fd, buffer, length);
 
         puts(" Frame sent\n");
-        sleep(1);
         alarm(3);
 
         int i = 0;
@@ -174,7 +174,6 @@ int llread(int fd, char* buffer) {
         printf("%d - %x, ", i, response[i]);
     }
 
-    sleep(2);
     int i = send_response(fd, response);
 
     printf(" Response sent, %d writen\n", i);
@@ -211,7 +210,10 @@ int llclose_sender(int fd){
 	if(state == END) {
         send_ua(fd, 0, 0);
         puts("TRANSMITTER DISCONNECTED");
+        return 0;
     }
+
+    return -1;
 }
 
 int llclose_reciever(int fd){
@@ -222,36 +224,30 @@ int llclose_reciever(int fd){
 		read(fd, &rec, 1);
 		disc_sm(&state0, rec, 1);
 	}
-    sleep(1);
-	send_disc(fd, 0, 1);
-    sleep(1);
     (void) signal(SIGALRM, handler);
 	if(state0 == END) {
         state state1 = START;
         try_counter = 0;
         int try = 0;
         while (try_counter < TRIES && state1 != END){
-            try = try_counter;  
-            read(fd, &rec, 1);
-            ua_sm(&state1, rec, 1);
-            if (try != try_counter){
-                printf("FAILED ATTEMPT NO:%d\n", try);
-                break;
+        	send_disc(fd, 0, 1);
+        	alarm(3);
+            try = try_counter;
+            while(state1 != END){
+            	read(fd, &rec, 1);
+            	ua_sm(&state1, rec, 1);
+            	if (try != try_counter) break;
             }
         }
-        
-        if (state1 == END) {
-            puts("RECEIVER DISCONNECTED");
-            return 0;
-        }
-        else{
-            puts("RECEIVER FAILED TO DISCONNECT PROPERLY");
-            return 1;
-        }
+        puts("RECEIVER DISCONNECTED");
+        if (state1 == END) return 0;
+        else return 1;
     }
+
+    return 2;
 }
 
-int llclose(int fd, int t_or_r){
-    if(!t_or_r) llclose_sender(fd);
-    else llclose_reciever(fd);
+int llclose(int t_or_r){
+    if(!t_or_r) return llclose_sender(fd);
+    else return llclose_reciever(fd);
 }

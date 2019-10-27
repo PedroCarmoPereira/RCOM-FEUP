@@ -5,6 +5,7 @@
 
 typedef struct appicationLayer {
 	int fileDescriptor; /*SERIAL PORT FILE DESCRIPTOR*/
+	char * port; //PORT
 	status stat; /*TRANSMITTER | RECEIVER*/
 } application;
 
@@ -56,7 +57,7 @@ int validate_start_packet(control_packet packet, file_info *fi);
 
 int validate_end_packet(control_packet packet, file_info * fi);
 
-//void send_control_packet(control_packet packet, application *app); USA O LLWRITE PARA MANDAR UM PACOTE
+int send_control_packet(control_packet packet, application *app);
 
 int build_data_packet(data_packet * packet, char * buff, int size);
 
