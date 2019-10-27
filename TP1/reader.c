@@ -49,11 +49,12 @@ int main(int argc, char** argv)
     puts("");*/
     /*------------------------*/
 
-    for (int i = 0; i < 3; i++){
-        char *frame = malloc()
-        llread(fd, )
-    }
-    
+    /*for (int i = 0; i < 3; i++){*/
+        char *frame = malloc(3);
+        puts(" Entering llread\n");
+        llread(fd, frame);
+    //}
+    sleep(1);
     llclose_reciever(fd);
     int ret;
     if((ret = termios_reset(fd, &oldtio)) != 0){

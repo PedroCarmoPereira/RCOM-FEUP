@@ -6,6 +6,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "interface.h"
 #include "datalink.h"
@@ -97,23 +98,49 @@ int llwrite(int fd, char* buffer, int length) {
         int try = try_counter;
         printf("%d\n", try_counter);
         send_frame(fd, buffer, length);
+
+        puts(" Frame sent\n");
         sleep(1);
         alarm(3);
 
         int i = 0;
-        while(state != END){
-            read(fd, &rec[i++], 1);
-            sender_read_response_sm(&state, rec[i]);
+        while(state != END) {
+            int add = read(fd, &rec[i], 1);
+            //printf("after read before SM   ");
+            //printf("read returned %d, errno: %d \n", add, errno);
+            if (add > 0) {
+                printf("read returned %d, %x, errno: %d \n", add, rec[i],  errno);
+                sender_read_response_sm(&state, rec[i]);
+                //puts("after read & SM");
+                i++;
+            }
+                        
             if (try != try_counter){
                 printf("exiting try %d\n", try);
                 break;
             }
         }
-    }
-    int ret = -1;
-    if (state == END)
-        ret = analyze_response(rec);
+        /*while (i < 5){
+            int add = read(fd, &rec[i], 1);
+            if (add == 1){
+                i++;
+                printf(" read one\n");
+            }
+        }
 
+        for (int j = 0; j < 5; j++)
+            printf("  %d- %x", j, rec[j]);
+        puts(" ");
+        break;*/
+    }
+
+
+    int ret = -1;
+    if (state == END){
+        puts(" Response received\n");
+        ret = analyze_response(rec);
+        puts(" Response analyzed\n");
+    }
     
     return ret;
 }
@@ -123,29 +150,46 @@ int llread(int fd, char* buffer) {
     enum state state = START;
 
     int frame_length = 0;
+
     while(state != END){
-        int r = read(fd, &rec[frame_length++], 1);
-        read_frame_sm(&state, rec);
+        int r = read(fd, &rec[frame_length], 1);
+        if (r > 0) {
+            printf(" Char received: %x\n", rec[frame_length]);
+            puts(" Pre SM");
+            read_frame_sm(&state, rec[frame_length]);
+            puts(" Post SM");
+            frame_length++;
+        }
     }
 
-    puts(" Read");
+    puts(" Read\n");
 
     char *destuffed_frame = malloc(MAX_FRAME_SIZE);
     int destuffed_frame_length = destuff_frame(rec, frame_length, destuffed_frame);
 
-    puts(" Frame destuffed\n")
+    puts(" Frame destuffed\n");
       
     int result = analyze_frame(destuffed_frame, destuffed_frame_length);
 
-    printf(" Frame analyzed; result=%d", result);
+    printf(" Frame analyzed; result=%d\n", result);
 
     int data_to_save = 0;
     if (result == 0)
         data_to_save = get_frame_data(destuffed_frame, destuffed_frame_length, buffer);
 
+    printf(" Data extracted from frame\n");
+
     char *response = malloc(SUP_SIZE); 
     build_response(response, result);
-    send_response(fd, response);
+
+    for (int i = 0; i < SUP_SIZE; i++){
+        printf("%d - %x, ", i, response[i]);
+    }
+
+    sleep(2);
+    int i = send_response(fd, response);
+
+    printf(" Response sent, %d writen\n", i);
 
     free(rec);
     free(destuffed_frame);

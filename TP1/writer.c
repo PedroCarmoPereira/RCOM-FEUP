@@ -38,6 +38,11 @@ int main(int argc, char** argv)
     int ret;
     llopen(argv[1], 0);
     sleep(3);
+
+    char data[3] = {0x01, 0x7e, 0x03};
+    
+    llwrite(fd, data, 3);
+
     llclose_sender(fd);
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);

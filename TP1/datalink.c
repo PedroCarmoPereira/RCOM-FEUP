@@ -205,9 +205,9 @@ int send_frame(int fd, char* data, int data_length) {
     char *byte_stuffed_data = malloc(2 * data_length);
     int new_data_length = byte_stuffer(data, data_length, byte_stuffed_data);
 
-    printf("new length: %d \n", new_length);
+    printf("new data length: %d \n", new_data_length);
     
-    int frame_size = sizeof(char) * 6 + new_length;
+    int frame_size = sizeof(char) * 6 + new_data_length;
     printf("frame size: %d \n", frame_size);
     char* frame = malloc(frame_size);
     
@@ -314,23 +314,29 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
 int sender_read_response_sm(state *state, char rec) {
     switch (*state){
         case START:
+            puts("start");
+            printf("%x\n", rec);
             if(rec == SFD) *state = FLAG_RCV;
             break;
         case FLAG_RCV:
-            if(rec == CE_RR) *state = A_RCV;
-            else if (rec != SFD) *state = START;                   
+            puts("flag_rcv");printf("%x\n", rec);
+            if(rec == CR_RE) *state = A_RCV;
+            else if (rec != SFD) *state = START;               
             break;
         case A_RCV:
+            puts("a_rcv");printf("%x\n", rec);
             if((rec & (~BIT(7))) == RR || (rec & (~BIT(7))) == REJ) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
-        case C_RCV: 
-            if (rec == CE_RR ^ RR0 || rec == CE_RR ^ RR1 || rec == CE_RR ^ REJ0 || rec == CE_RR ^ REJ1) *state = BCC_RCV;
+        case C_RCV:
+            puts("c_rcv");printf("%x\n", rec);
+            if (rec == CR_RE ^ RR0 || rec == CR_RE ^ RR1 || rec == CR_RE ^ REJ0 || rec == CR_RE ^ REJ1) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case BCC_RCV:
+            puts("bcc_rcv");printf("%x\n", rec);
             if(rec == SFD) *state = END;
             else *state = START;
             break;
@@ -404,7 +410,7 @@ int analyze_frame(char *frame, int frame_length) {
 
     int sequenceNumber;
     if (control_field == 0x40) 
-        sequenceNumber = 1
+        sequenceNumber = 1;
     else if (control_field == 0x00)
         sequenceNumber = 0;
 
@@ -419,28 +425,24 @@ int analyze_frame(char *frame, int frame_length) {
             // RR and ACCEPT DATA
             return 0;
         }
-        else 
+        else {
             // RR and REJECT DATA
             return 1;
         } 
     } 
     else {
-        if (sequenceNumber == info.sequenceNumber){
-            keep = 0; // REJ and REJECT DATA
+        if (sequenceNumber == info.sequenceNumber){ // REJ and REJECT DATA
             return -1;
         }
-        else {
-            keep = 0; // RR and REJECT DATA
+        else { // RR and REJECT DATA
             return 1;
         } 
 
     }
-
-    return keep;
 }
 
 int get_frame_data(char *frame, int length, char *data){
-    int j = 0
+    int j = 0;
     for (int i = 4; i < length - 3; i++) {
         data[j] = frame[i];
         j++;
@@ -453,21 +455,21 @@ int build_response(char *response, int response_type) {
     response[0] = SFD;
     response[1] = CR_RE;
      
-    if (response_type >= 0) { // ReceiverReady
+    if (response_type >= 0) { // Receiver Ready
         if (info.sequenceNumber == 0){
             info.sequenceNumber = 1;
-            response[2] = 0x40;
+            response[2] = 0x85;
         }
         else if (info.sequenceNumber == 1){
             info.sequenceNumber = 0;
-            response[2] = 0x00;
+            response[2] = 0x05;
         }
     }
     else { // Reject
         if (info.sequenceNumber == 0)
-            response[2] = 0x00;
+            response[2] = 0x01;
         else if (info.sequenceNumber == 1)
-            response[2] = 0x40;
+            response[2] = 0x81;
     }
 
     response[3] = CR_RE ^ response[2];
