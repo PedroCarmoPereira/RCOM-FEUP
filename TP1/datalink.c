@@ -311,7 +311,8 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
 }
 
 
-int sender_read_response_sm(state *state, char rec) {
+int sender_read_response_sm(state *state, char re) {
+    char rec = (unsigned char) re;
     switch (*state){
         case START:
             puts("start");
@@ -324,8 +325,9 @@ int sender_read_response_sm(state *state, char rec) {
             else if (rec != SFD) *state = START;               
             break;
         case A_RCV:
-            puts("a_rcv");printf("%x\n", rec);
-            if((rec & (~BIT(7))) == RR || (rec & (~BIT(7))) == REJ) *state = C_RCV;
+            puts("a_rcv");printf("%x, RR1:%x\n", rec, RR1);
+
+            if ((rec & RR) == RR || (rec & REJ == REJ)) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
