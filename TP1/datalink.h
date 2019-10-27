@@ -76,5 +76,17 @@ int byte_destuffer(char *buffer, int length, char* newBuffer);
 
 int sender_read_response_sm(state *state, char rec);
 
+int send_response(int fd, char *response);
+
+int build_response(char *response, int response_type);
+
+int get_frame_data(char *frame, int length, char *data);
+
+int read_frame_sm(state *state, char rec);
+
+int destuff_frame(char *rec, int length, char* destuffed_frame);
+
+int analyze_frame(char *frame, int frame_length);
+
 int analyze_response(char *rec);
 #endif

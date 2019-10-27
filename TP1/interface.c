@@ -15,9 +15,13 @@ int fd;
 
 int try_counter = 0;
 
+int read_breaker = 0;
+
 struct termios oldtio,newtio;
 
 void handler(){try_counter++;}
+
+void break_read(){read_breaker++;}
 
 int llopen_sender(char * port){
 	
@@ -37,9 +41,7 @@ int llopen_sender(char * port){
         state = START;
         int try = try_counter;
         send_set(fd, 0);
-        //sleep(1);
         alarm(3);
-        //Re-lê
         char rec = 0;
         while(state != END){
             read(fd, &rec, 1);
@@ -100,7 +102,6 @@ int llwrite(int fd, char* buffer, int length) {
         send_frame(fd, buffer, length);
 
         puts(" Frame sent\n");
-        sleep(1);
         alarm(3);
 
         int i = 0;
@@ -174,7 +175,6 @@ int llread(int fd, char* buffer) {
         printf("%d - %x, ", i, response[i]);
     }
 
-    sleep(2);
     int i = send_response(fd, response);
 
     printf(" Response sent, %d writen\n", i);
@@ -209,18 +209,21 @@ int llclose_sender(int fd){
     }
 
 	if(state == END) {
-        send_ua(fd, 0, 0);
+        send_ua(fd, 1, 0);
         puts("TRANSMITTER DISCONNECTED");
     }
 }
 
+
 int llclose_reciever(int fd){
-	state state0 = START;
+    state state0 = START;
 	char rec;
     puts("DISCONNECTING RECEIVER");
-	while(state0 != END){
+    (void) signal(SIGALRM, break_read);
+	while(state0 != END && !read_breaker){
 		read(fd, &rec, 1);
 		disc_sm(&state0, rec, 1);
+        alarm(5);
 	}
     sleep(1);
 	send_disc(fd, 0, 1);
@@ -248,7 +251,54 @@ int llclose_reciever(int fd){
             puts("RECEIVER FAILED TO DISCONNECT PROPERLY");
             return 1;
         }
-    }
+}
+	/*state state0 = START;
+	unsigned char rec;
+    int try = 0;
+    errno = 255;
+    puts("DISCONNECTING RECEIVER");
+    try_counter = 0;
+    (void) signal(SIGALRM, break_read);
+	while(state0 != END && !read_breaker){
+        try = try_counter;
+		int r = read(fd, &rec, 1);
+		disc_sm(&state0, rec, 1);
+        alarm(5);
+	}
+    (void) signal(SIGALRM, handler);
+    tcflush(fd, 0);
+	if(state0 == END) {
+        state state1 = START;
+        try_counter = 0;
+        try = 0;
+        while (try_counter < TRIES && state1 != END){
+            send_disc(fd, 0, 1);
+            sleep(1);
+            alarm(3);
+            while(state1 != END){
+                try = try_counter;  
+                int k = read(fd, &rec, 1);
+                if (k > 0){ 
+                    printf("READ: %x\n", (unsigned char) rec);
+                    printf("ERRNO: %d\n", errno);
+                }
+                ua_sm(&state1, rec, 1);
+                if (try != try_counter){
+                    printf("FAILED ATTEMPT NO:%d TO RECEIVE UA FROM TRANSMITTER\n", try);
+                    break;
+                }
+            }
+        }
+        
+        if (state1 == END) {
+            puts("RECEIVER DISCONNECTED");
+            return 0;
+        }
+        else{
+            puts("RECEIVER FAILED TO DISCONNECT PROPERLY");
+            return 1;
+        }
+    }*/
 }
 
 int llclose(int fd, int t_or_r){

@@ -101,8 +101,6 @@ int send_set(int fd, int debug){
             printf("Wrote: %d bytes \n", w);
         }
     }
-
-    sleep(1);
     return 0;
 }
 
@@ -117,7 +115,7 @@ int send_ua(int fd, int debug, int t_or_r){
             return -1;
         }
         else {
-            puts("Sent set:");
+            puts("SENT UA:");
             printf("Wrote: %d bytes \n", w);
         }
     }
@@ -132,24 +130,43 @@ void ua_sm(state *state, char rec, int t_or_r){
     switch (*state){
         case START:
             if(rec == SFD) *state = FLAG_RCV;
+            else puts("FAIL0");
             break;
         case FLAG_RCV:
             if(rec = a) *state = A_RCV;
-            else if (rec != SFD) *state = START;
+            else if (rec != SFD) {
+                puts("FAIL1");
+                *state = START;
+            }
             break;
         case A_RCV:
             if(rec == UA) *state = C_RCV;
-            else if (rec == SFD) *state = FLAG_RCV;
-            else *state = START;
+            else if (rec == SFD) {
+                puts("FAIL2");
+                *state = FLAG_RCV;
+            }
+            else{
+                puts("FAIL3");
+                *state = START;
+            } 
             break;
         case C_RCV:
             if (rec == a ^ UA) *state = BCC_RCV;
-            else if (rec == SFD) *state = FLAG_RCV;
-            else *state = START; 
+            else if (rec == SFD){
+                puts("FAIL4");
+                *state = FLAG_RCV;
+            }
+            else {
+                puts("FAIL5");
+                *state = START; 
+            }
             break;
         case BCC_RCV:
             if(rec == SFD) *state = END;
-            else *state = START;
+            else {
+                puts("FAIL6");
+                *state = START;
+            }
             break;
         case END:
             alarm(0);
@@ -500,8 +517,6 @@ int send_disc(int fd, int debug, int t_or_r){
             printf("Wrote: %d bytes \n", w);
         }
     }
-
-    sleep(1);
     return 0;
 }
 
