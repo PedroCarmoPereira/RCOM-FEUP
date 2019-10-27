@@ -326,7 +326,6 @@ int sender_read_response_sm(state *state, char re) {
             break;
         case A_RCV:
             puts("a_rcv");printf("%x, RR1:%x\n", rec, RR1);
-
             if ((rec & RR) == RR || (rec & REJ == REJ)) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
