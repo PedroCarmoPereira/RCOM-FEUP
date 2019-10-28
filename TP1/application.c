@@ -76,7 +76,7 @@ int send_control_packet(control_packet packet, application *app){
 
 	msg[i] = (char) packet.tlvs[1].type;
 	i++;
-	msg[i] = (char) packet.tlvs[1].length;
+	msg[i] = (char) packet.tlvs[1].length + 1;
 	printf("Length filename -> %x", msg[i]);
 	i++;
 	
@@ -84,8 +84,9 @@ int send_control_packet(control_packet packet, application *app){
 		msg[i] = packet.tlvs[1].value[j];
 		i++;
 	}
+	msg[i] = '\0';
 
-	int size = 5 + packet.tlvs[0].length + packet.tlvs[1].length;
+	int size = 5 + packet.tlvs[0].length + packet.tlvs[1].length + 1;
 	int stop = 0;
 	puts("SENDING");
 	for(int mi = 0; mi < size; mi++) printf("%x\n", msg[mi]);
@@ -119,7 +120,7 @@ int receive_control_packet(control_packet *p, application * app){
 		i++;
 	}
 	p->tlvs[0].value[k] = '\0';
-	 
+
 	p->tlvs[1].value = malloc(sizeof(char *));
 	p->tlvs[1].type = msg[i];
 	i++;
