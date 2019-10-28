@@ -106,7 +106,6 @@ int receive_control_packet(control_packet *p, application * app){
 		ret = llread(msg);
 	}while(ret == 0);
 	int i = 0;
-	puts("AAAAAAAAAAAAAAAAAAAAA");
 	p->c = msg[i];
 	i++;
 	p->tlvs[0].value = malloc(sizeof(char *));
@@ -201,8 +200,8 @@ int send_data_packet(data_packet *packet){
 	return 0;	
 }
 
-int receive_data_packet(data_packet *p) {
-	char msg[DATA_FRAME_SIZE];
+int receive_data_packet(data_packet * p){
+	char msg[DATA_FRAME_SIZE]; //= malloc(sizeof(char *));
 
 	int ret = 0;
 
@@ -240,6 +239,7 @@ int main(int argc, char ** argv){
     	puts("INCORRECT ARGUMENTS");
     	exit(-1);
     }
+	
     int packet_size = get_max_frame_size() - 6;
     if(app.stat == TRANSMITTER){
     	llopen(app.port, 0);
@@ -270,10 +270,10 @@ int main(int argc, char ** argv){
     	sleep(1);
 		control_packet p;
 		receive_control_packet(&p, &app);
-		printf("PACKET RECEIVED:\nPACKET_TYPE:%d\n", p.c);
-		printf("SUPPOSED LENGHT: %d \t ACTUAL LENGTH:%d\n", p.tlvs[1].length, strlen(p.tlvs[1].value));
-		printf("\nSTring %s\n", p.tlvs[1].value);
-		puts("\nAAAA");
+		data_packet dp;
+		receive_data_packet(&dp);
+		printf("\nDATA PACKET RECEIVED: %d, %d, %d\n", dp.c, dp.l1, dp.l2);
+		for(int i = 0; i < dp.l1*255 + dp.l2; i++) printf("DATA: %d\n", dp.data[i]);
 		//free_control_packet(&p);
     	llclose(1);
     }

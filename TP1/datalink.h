@@ -92,4 +92,6 @@ int build_response(char *response, int response_type);
 
 int send_response(int fd, char *response);
 
+void set_default_settings();
+
 #endif
