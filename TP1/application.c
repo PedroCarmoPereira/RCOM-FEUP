@@ -113,10 +113,13 @@ int receive_control_packet(control_packet *p, application * app){
 	i++;
 	p->tlvs[0].length = msg[i];
 	i++;
-	for(int k = 0; k < p->tlvs[0].length; k++) {
+	int k;
+	for(k = 0; k < p->tlvs[0].length; k++) {
 		p->tlvs[0].value[k] = msg[i];
 		i++;
 	}
+	p->tlvs[0].value[k] = '\0';
+	 
 	p->tlvs[1].value = malloc(sizeof(char *));
 	p->tlvs[1].type = msg[i];
 	i++;
