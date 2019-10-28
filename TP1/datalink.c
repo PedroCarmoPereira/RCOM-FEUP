@@ -340,31 +340,46 @@ int sender_read_response_sm(state *state, char rec) {
 }
 
 int read_frame_sm(state *state, char rec) {
+    printf("READ: %x\n", rec);
+    static char a, c; 
     switch (*state) {
     case START:
+        puts("START");
         if (rec == SFD) *state = FLAG_RCV;
         break;
     case FLAG_RCV:
-        if(rec == CE_RR) *state = A_RCV;
+        puts("FLAG");
+        if(rec == CE_RR) {
+            a = rec;
+            *state = A_RCV;
+        }
         else if (rec != SFD) *state = START;                   
         break;
     case A_RCV:
-        if((rec & (~BIT(7))) == 0x00) *state = C_RCV;
+        puts("A");
+        if((rec & (~BIT(7))) == 0x00) {
+            c = rec;
+            *state = C_RCV;
+        }
         else if (rec == SFD) *state = FLAG_RCV;
         else *state = START;
         break;
     case C_RCV:
-        if (rec == (char) (CE_RR ^ RR0) || rec == (char) (CE_RR ^ RR1) || rec == (char) (CE_RR ^ REJ0) || rec == (char) (CE_RR ^ REJ1)) *state = BCC_RCV;
+        puts("C");
+        if (rec == (a ^ c)) *state = BCC_RCV;
         else if (rec == SFD) *state = FLAG_RCV;
         else *state = START;
         break;
     case BCC_RCV:
+        puts("BCC");
         *state = DATA_RCV;
         break;
     case DATA_RCV:
+        puts("DATA");
         if (rec == SFD) *state = END;
         break;
     case END:
+        puts("FLAG");
         puts("RESPONSE RECIEVED");
         break;
     default:

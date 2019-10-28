@@ -170,16 +170,16 @@ int main(int argc, char ** argv){
     	build_control_packet(1, &p, argv[3]);
     	send_control_packet(p, &app);
     	puts("AFTER SENDING CONTROL PACKET");*/
-    	//char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
-    	//llwrite(buffer, 5);
+    	char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
+    	llwrite(buffer, 5);
     	llclose(0);
     }
 
     else {
     	llopen(app.port, 1);
     	sleep(1);
-    	control_packet p;
-    	receive_control_packet(&p, &app);
+		char buffer[5];
+    	llread(buffer);
     	llclose(1);
     }
 	return 0;

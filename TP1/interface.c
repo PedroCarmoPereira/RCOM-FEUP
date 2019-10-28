@@ -134,20 +134,30 @@ int llread(char* buffer) {
     while(state != END){
         int r = read(fd, &rec[frame_length], 1);
         if (r > 0) {
+            //printf(" Char received: %x\n", rec[frame_length]);
+            //puts(" Pre SM");
             read_frame_sm(&state, rec[frame_length]);
+            //puts(" Post SM");
             frame_length++;
         }
     }
 
+    //puts(" Read\n");
+
     char *destuffed_frame = malloc(MAX_FRAME_SIZE);
     int destuffed_frame_length = destuff_frame(rec, frame_length, destuffed_frame);
+
+    //puts(" Frame destuffed\n");
       
     int result = analyze_frame(destuffed_frame, destuffed_frame_length);
+
+    //printf(" Frame analyzed; result=%d\n", result);
 
     int data_to_save = 0;
     if (result == 0)
         data_to_save = get_frame_data(destuffed_frame, destuffed_frame_length, buffer);
 
+    //printf(" Data extracted from frame\n");
 
     char *response = malloc(SUP_SIZE); 
     build_response(response, result);
@@ -156,7 +166,10 @@ int llread(char* buffer) {
         printf("%d - %x, ", i, response[i]);
     }
 
+    sleep(2);
     int i = send_response(fd, response);
+
+    printf(" Response sent, %d writen\n", i);
 
     free(rec);
     free(destuffed_frame);
