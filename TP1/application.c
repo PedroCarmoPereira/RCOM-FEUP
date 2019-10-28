@@ -39,15 +39,16 @@ int build_control_packet(packet_type type, control_packet *packet, char * filena
 	}
 	packet->c = type;
 	
-	packet->tlvs[0].value = malloc(sizeof(char *));
+	char buf0[10];
+	packet->tlvs[0].value = buf0;
 	packet->tlvs[0].type = SIZE;
-	packet->tlvs[0].length = sizeof(long int);
 	sprintf(packet->tlvs[0].value, "%ld", fileStat.st_size);
+	packet->tlvs[0].length = strlen(packet->tlvs[0].value);
 
 	packet->tlvs[1].value = malloc(sizeof(char *));
 	packet->tlvs[1].type = NAME;
-	packet->tlvs[1].length = sizeof(char *);
 	sprintf(packet->tlvs[1].value, "%s", filename);
+	packet->tlvs[1].length = strlen(packet->tlvs[1].value);
 
 	return 0;
 }
@@ -86,22 +87,32 @@ int receive_control_packet(control_packet *p, application * app){
 	do{
 		ret = llread(msg);
 	}while(ret == 0);
-	p->c = msg[0];
+	int i = 0;
+	puts("AAAAAAAAAAAAAAAAAAAAA");
+	p->c = msg[i];
+	i++;
 	p->tlvs[0].value = malloc(sizeof(char *));
-	p->tlvs[0].type = msg[1];
-	p->tlvs[0].length = msg[2];
-	int i;
-	for(i = 0; i < p->tlvs[0].length; i++) p->tlvs[0].value[i] = msg[3 + i];
-
-	//i += 3;
-	p->tlvs[1].value = malloc(sizeof(char *));
-	p->tlvs[1].type = msg[1 + i++];
-	p->tlvs[1].length = msg[1 + i];
-	for(int j = 0; j < p->tlvs[1].length; j++) {
-		p->tlvs[1].value[j] = msg[1 + i];
+	p->tlvs[0].type = msg[i];
+	i++;
+	p->tlvs[0].length = msg[i];
+	i++;
+	for(int k = 0; k < p->tlvs[0].length; k++) {
+		p->tlvs[0].value[k] = msg[i];
 		i++;
 	}
-	free(msg);
+	p->tlvs[1].value = malloc(sizeof(char *));
+	p->tlvs[1].type = msg[i];
+	i++;
+	p->tlvs[1].length = msg[i];
+	i++;
+	int j;
+	for(j = 0; j < p->tlvs[1].length; j++) {
+		p->tlvs[1].value[j] = msg[i];
+		i++;
+	}
+	p->tlvs[1].length = j;
+	printf("%d", j);
+	//free(msg);
 }
 
 int free_control_packet(control_packet * packet){
@@ -166,7 +177,7 @@ int main(int argc, char ** argv){
     	llopen(app.port, 0);
     	sleep(1);
     	control_packet p;
-    	build_control_packet(1, &p, argv[3]);
+    	build_control_packet(START, &p, argv[3]);
     	send_control_packet(p, &app);
     	puts("AFTER SENDING CONTROL PACKET");
     	/*char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
@@ -180,8 +191,10 @@ int main(int argc, char ** argv){
 		control_packet p;
 		receive_control_packet(&p, &app);
 		printf("PACKET RECEIVED:\nPACKET_TYPE:%d\n", p.c);
-		for(int i = 0; i < 8; i++) printf("%c", p.tlvs[1].value[i]);
+		printf("SUPPOSED LENGHT: %d \t ACTUAL LENGTH:%d\n", p.tlvs[1].length, strlen(p.tlvs[1].value));
+		for(int i = 0; i < p.tlvs[1].length; i++) printf("%c", p.tlvs[1].value[i]);
 		puts("\nAAAA");
+		//free_control_packet(&p);
     	llclose(1);
     }
 	return 0;

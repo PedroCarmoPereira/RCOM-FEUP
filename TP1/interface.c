@@ -171,9 +171,9 @@ int llread(char* buffer) {
 
     printf(" Response sent, %d writen\n", i);
 
-    free(rec);
-    free(destuffed_frame);
-    free(response);
+    //free(rec);
+    //free(destuffed_frame);
+    //free(response);
 
     return data_to_save;    
 }
