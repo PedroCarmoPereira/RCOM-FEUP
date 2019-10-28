@@ -109,7 +109,7 @@ int send_set(int fd, int debug){
 int send_ua(int fd, int debug, int t_or_r){
     int a = CR_RE;
     if(t_or_r) a = CE_RR;
-    char ua[5] = {SFD, CE_RR, UA, a ^ UA, SFD};
+    char ua[5] = {SFD, a, UA, a ^ UA, SFD};
     int w = write(fd, ua, SUP_SIZE);
     if(debug){
         if (w == -1) {
@@ -129,29 +129,36 @@ void ua_sm(state *state, char rec, int t_or_r){
     
     int a = CE_RR;
     if(t_or_r) a = CR_RE;
+    printf("received %x in  ", rec);
     switch (*state){
         case START:
+            puts("start");
             if(rec == SFD) *state = FLAG_RCV;
             break;
         case FLAG_RCV:
+            puts("flag_rcv");
             if(rec == a) *state = A_RCV;
             else if (rec != SFD) *state = START;
             break;
         case A_RCV:
+            puts("a_rcv");
             if(rec == UA) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case C_RCV:
+            puts("c_rcv");
             if (rec == (a ^ UA)) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START; 
             break;
         case BCC_RCV:
+            puts("bcc_rcv");
             if(rec == SFD) *state = END;
             else *state = START;
             break;
         case END:
+            puts("flag_rcv");
             alarm(0);
             break;
         default:
@@ -486,7 +493,7 @@ int send_disc(int fd, int debug, int t_or_r){
     char A;
     if(!t_or_r) A = CE_RR;
     else A = CR_RE;
-    char BCC = A ^ SET;
+    char BCC = A ^ DISC;
     char disc[5] = {SFD, A, DISC, BCC, SFD};
     int w = write(fd, disc, SUP_SIZE);
     if(debug){
@@ -526,7 +533,7 @@ void disc_sm(state *state, char rec, int t_or_r){
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
-        case BCC_RCV:;
+        case BCC_RCV:
             if(rec == SFD) *state = END;
             else *state = START;
             break;

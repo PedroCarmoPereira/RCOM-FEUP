@@ -219,10 +219,11 @@ int llclose_sender(int fd){
 int llclose_reciever(int fd){
 	state state0 = START;
 	char rec;
+    int k = 0;
     puts("DISCONNECTING RECEIVER");
 	while(state0 != END){
-		read(fd, &rec, 1);
-		disc_sm(&state0, rec, 1);
+		k = read(fd, &rec, 1);
+        if(k > 0) disc_sm(&state0, rec, 1);
 	}
     (void) signal(SIGALRM, handler);
 	if(state0 == END) {
@@ -234,8 +235,8 @@ int llclose_reciever(int fd){
         	alarm(3);
             try = try_counter;
             while(state1 != END){
-            	read(fd, &rec, 1);
-            	ua_sm(&state1, rec, 1);
+            	k = read(fd, &rec, 1);
+            	if(k > 0) ua_sm(&state1, rec, 1);
             	if (try != try_counter) break;
             }
         }

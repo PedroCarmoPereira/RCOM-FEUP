@@ -11,7 +11,6 @@
 #include "application.h"
 #include "interface.h"
 
-int max_frame_size = 64; //NOTA: ESTE VALOR DEVE SER INTRODUZIDO PELO USER, PARA JA ESTAMOS A USAR O MIN_SIZE DAS FRAMES DE INTERNET IRL
 int sequence_number = 0;
 
 int parseArgs(application * app, int argc,  char ** argv){
