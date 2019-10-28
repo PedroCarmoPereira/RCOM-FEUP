@@ -93,12 +93,12 @@ int receive_control_packet(control_packet *p, application * app){
 	int i;
 	for(i = 0; i < p->tlvs[0].length; i++) p->tlvs[0].value[i] = msg[3 + i];
 
-	i += 3;
+	//i += 3;
 	p->tlvs[1].value = malloc(sizeof(char *));
-	p->tlvs[1].type = msg[i++];
-	p->tlvs[1].length = msg[i];
+	p->tlvs[1].type = msg[1 + i++];
+	p->tlvs[1].length = msg[1 + i];
 	for(int j = 0; j < p->tlvs[1].length; j++) {
-		p->tlvs[0].value[j] = msg[i];
+		p->tlvs[1].value[j] = msg[1 + i];
 		i++;
 	}
 	free(msg);
@@ -165,21 +165,23 @@ int main(int argc, char ** argv){
     if(app.stat == TRANSMITTER){
     	llopen(app.port, 0);
     	sleep(1);
-    	/*
     	control_packet p;
     	build_control_packet(1, &p, argv[3]);
     	send_control_packet(p, &app);
-    	puts("AFTER SENDING CONTROL PACKET");*/
-    	char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
-    	llwrite(buffer, 5);
+    	puts("AFTER SENDING CONTROL PACKET");
+    	/*char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
+    	llwrite(buffer, 5);*/
     	llclose(0);
     }
 
     else {
     	llopen(app.port, 1);
     	sleep(1);
-		char buffer[5];
-    	llread(buffer);
+		control_packet p;
+		receive_control_packet(&p, &app);
+		printf("PACKET RECEIVED:\nPACKET_TYPE:%d\n", p.c);
+		for(int i = 0; i < 8; i++) printf("%c", p.tlvs[1].value[i]);
+		puts("\nAAAA");
     	llclose(1);
     }
 	return 0;

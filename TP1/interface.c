@@ -166,7 +166,7 @@ int llread(char* buffer) {
         printf("%d - %x, ", i, response[i]);
     }
 
-    sleep(2);
+    //sleep(2);
     int i = send_response(fd, response);
 
     printf(" Response sent, %d writen\n", i);
