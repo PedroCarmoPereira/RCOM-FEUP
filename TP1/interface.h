@@ -12,14 +12,16 @@ int llopen_receiver(char * port);
 
 int llopen(char * port, int t_or_r);
 
-int llwrite(int fd, char *buffer, int length);
+int llwrite(char *buffer, int length);
 
-int llread(int fd, char *buffer);
+int llread(char *buffer);
 
 int llclose_sender(int fd);
 
 int llclose_reciever(int fd);
 
 int llclose(int t_or_r);
+
+int get_max_frame_size();
 
 #endif

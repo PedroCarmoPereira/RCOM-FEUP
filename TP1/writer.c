@@ -41,9 +41,9 @@ int main(int argc, char** argv)
 
     char data[3] = {0x01, 0x7e, 0x03};
     
-    llwrite(fd, data, 3);
+    llwrite(data, 3);
 
-    llclose(fd, 0);
+    llclose(0);
     if((ret = termios_reset(fd, &oldtio)) != 0){
         printf("termios_reset failed with error code:%d\n", ret);
         exit(-1);

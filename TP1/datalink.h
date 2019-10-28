@@ -4,7 +4,7 @@
 #include <termios.h>
 
 #define BIT(n) (0x01<<(n))
-#define BAUDRATE        B38400
+#define BAUDRATE        B9600//B38400
 #define SFD 		    0x7e
 #define SET 		    0x03
 #define	DISC 		    0x0b

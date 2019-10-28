@@ -93,12 +93,12 @@ int send_set(int fd, int debug){
     int w = write(fd, set, SUP_SIZE);
     if(debug){
         if (w == -1) {
-            printf("Write failed with errno:%d\n",errno);
+            printf("WRITE FAILED WITH ERRNO:%d\n",errno);
             return -1;
         }
         else {
-            puts("Sent set:");
-            printf("Wrote: %d bytes \n", w);
+            puts("SENT SET:");
+            printf("WROTE: %d BYTES \n", w);
         }
     }
 
@@ -113,12 +113,12 @@ int send_ua(int fd, int debug, int t_or_r){
     int w = write(fd, ua, SUP_SIZE);
     if(debug){
         if (w == -1) {
-            printf("Write failed with errno:%d\n",errno);
+            printf("WRITE FAILED WITH ERRNO:%d\n",errno);
             return -1;
         }
         else {
-            puts("Sent set:");
-            printf("Wrote: %d bytes \n", w);
+            puts("SENT UA:");
+            printf("WROTE: %d BYTES \n", w);
         }
     }
 
@@ -129,36 +129,29 @@ void ua_sm(state *state, char rec, int t_or_r){
     
     int a = CE_RR;
     if(t_or_r) a = CR_RE;
-    printf("received %x in  ", rec);
     switch (*state){
         case START:
-            puts("start");
             if(rec == SFD) *state = FLAG_RCV;
             break;
         case FLAG_RCV:
-            puts("flag_rcv");
             if(rec == a) *state = A_RCV;
             else if (rec != SFD) *state = START;
             break;
         case A_RCV:
-            puts("a_rcv");
             if(rec == UA) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case C_RCV:
-            puts("c_rcv");
             if (rec == (a ^ UA)) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START; 
             break;
         case BCC_RCV:
-            puts("bcc_rcv");
             if(rec == SFD) *state = END;
             else *state = START;
             break;
         case END:
-            puts("flag_rcv");
             alarm(0);
             break;
         default:
@@ -212,10 +205,8 @@ int send_frame(int fd, char* data, int data_length) {
     char *byte_stuffed_data = malloc(2 * data_length);
     int new_data_length = byte_stuffer(data, data_length, byte_stuffed_data);
 
-    printf("new data length: %d \n", new_data_length);
     
     int frame_size = sizeof(char) * 6 + new_data_length;
-    printf("frame size: %d \n", frame_size);
     char* frame = malloc(frame_size);
     
     if (build_frame(frame, frame_size, byte_stuffed_data, new_data_length, data_bcc) != 0){
@@ -228,11 +219,8 @@ int send_frame(int fd, char* data, int data_length) {
     }    
 
     int w = write(fd, frame, frame_size);
+    printf("WROTE %d BYTES\n", w);
   
-    for (int i = 0; i < frame_size; i++) {
-        printf("%x  ", frame[i]);
-    }
-
    if (info.sequenceNumber == 0){
        info.sequenceNumber = 1;
    } else if (info.sequenceNumber == 1) {
@@ -321,29 +309,23 @@ int byte_destuffer(char *buffer, int length, char* newBuffer){
 int sender_read_response_sm(state *state, char rec) {
     switch (*state){
         case START:
-            puts("start");
-            printf("%x\n", rec);
             if(rec == SFD) *state = FLAG_RCV;
             break;
         case FLAG_RCV:
-            puts("flag_rcv");printf("%x\n", rec);
             if(rec == CR_RE) *state = A_RCV;
             else if (rec != SFD) *state = START;               
             break;
         case A_RCV:
-            puts("a_rcv");printf("%x, RR1:%x\n", rec, RR1);
             if ((rec & RR) == RR || ((rec & REJ) == REJ)) *state = C_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case C_RCV:
-            puts("c_rcv");printf("%x\n", rec);
             if (rec == (char) (CR_RE ^ RR0) || rec == (char) (CR_RE ^ RR1) || rec == (char) (CR_RE ^ REJ0) || rec == (char) (CR_RE ^ REJ1)) *state = BCC_RCV;
             else if (rec == SFD) *state = FLAG_RCV;
             else *state = START;
             break;
         case BCC_RCV:
-            puts("bcc_rcv");printf("%x\n", rec);
             if(rec == SFD) *state = END;
             else *state = START;
             break;
@@ -405,7 +387,7 @@ int analyze_response(char *rec) {
             return 0;
     }
 
-    return -1;
+    return 1;
 }
 
 int destuff_frame(char *rec, int length, char* destuffed_frame){
@@ -498,12 +480,12 @@ int send_disc(int fd, int debug, int t_or_r){
     int w = write(fd, disc, SUP_SIZE);
     if(debug){
         if (w == -1) {
-            printf("Write failed with errno:%d\n",errno);
+            printf("WRITE FAILED WITH ERRNO:%d\n",errno);
             return -1;
         }
         else {
-            puts("Sent set:");
-            printf("Wrote: %d bytes \n", w);
+            puts("SENT SET:");
+            printf("WROTE: %d BYTES \n", w);
         }
     }
 

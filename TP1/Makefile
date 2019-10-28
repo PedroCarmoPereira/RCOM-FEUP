@@ -1,4 +1,4 @@
-CFLAGS	= -Wall	-Wextra
+CFLAGS	= -Wall	-Wextra -g
 OBJECTS1	=	application.o interface.o datalink.o
 
 all:	nserial

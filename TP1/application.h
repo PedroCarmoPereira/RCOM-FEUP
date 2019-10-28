@@ -4,7 +4,7 @@
 #include "interface.h"
 
 typedef struct appicationLayer {
-	int fileDescriptor; /*SERIAL PORT FILE DESCRIPTOR*/
+	int fd; /*SERIAL PORT FILE DESCRIPTOR*/
 	char * port; //PORT
 	status stat; /*TRANSMITTER | RECEIVER*/
 } application;
@@ -24,7 +24,7 @@ typedef enum tlv_type {
 
 typedef struct tlv_t {
 	tlv_type type;
-	int length;
+	char length;
 	char *value;
 } tlv;
 
@@ -42,7 +42,7 @@ typedef struct file_info_t {
 typedef struct data_packet_t {
 	packet_type c;
 	char sequence_number;
-	int l1, l2;
+	char l1, l2;
 	char * data;
 } data_packet;
 
@@ -58,6 +58,8 @@ int validate_start_packet(control_packet packet, file_info *fi);
 int validate_end_packet(control_packet packet, file_info * fi);
 
 int send_control_packet(control_packet packet, application *app);
+
+int receive_control_packet(control_packet *p, application * app);
 
 int build_data_packet(data_packet * packet, char * buff, int size);
 

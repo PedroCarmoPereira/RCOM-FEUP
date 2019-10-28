@@ -89,7 +89,7 @@ int llopen(char * port, int t_or_r){
 
 }
 
-int llwrite(int fd, char* buffer, int length) {
+int llwrite(char* buffer, int length) {
     try_counter = 0;
     state state = START;
     char rec[SUP_SIZE];
@@ -97,26 +97,19 @@ int llwrite(int fd, char* buffer, int length) {
     while(try_counter < TRIES && state != END){
         state = START;
         int try = try_counter;
-        printf("%d\n", try_counter);
         send_frame(fd, buffer, length);
-
-        puts(" Frame sent\n");
         alarm(3);
 
         int i = 0;
         while(state != END) {
             int add = read(fd, &rec[i], 1);
-            //printf("after read before SM   ");
-            //printf("read returned %d, errno: %d \n", add, errno);
             if (add > 0) {
-                printf("read returned %d, %x, errno: %d \n", add, rec[i],  errno);
                 sender_read_response_sm(&state, rec[i]);
-                //puts("after read & SM");
                 i++;
             }
                         
             if (try != try_counter){
-                printf("exiting try %d\n", try);
+                printf("EXITING LLWRITE TRY: %d\n", try);
                 break;
             }
         }
@@ -125,15 +118,14 @@ int llwrite(int fd, char* buffer, int length) {
 
     int ret = -1;
     if (state == END){
-        puts(" Response received\n");
+        puts(" RESPONSE RECEIVED\n");
         ret = analyze_response(rec);
-        puts(" Response analyzed\n");
+        puts(" RESPONSE ANALYZED\n");
     }
-    
     return ret;
 }
 
-int llread(int fd, char* buffer) {
+int llread(char* buffer) {
     char *rec = malloc(MAX_FRAME_SIZE);
     enum state state = START;
 
@@ -142,30 +134,20 @@ int llread(int fd, char* buffer) {
     while(state != END){
         int r = read(fd, &rec[frame_length], 1);
         if (r > 0) {
-            printf(" Char received: %x\n", rec[frame_length]);
-            puts(" Pre SM");
             read_frame_sm(&state, rec[frame_length]);
-            puts(" Post SM");
             frame_length++;
         }
     }
 
-    puts(" Read\n");
-
     char *destuffed_frame = malloc(MAX_FRAME_SIZE);
     int destuffed_frame_length = destuff_frame(rec, frame_length, destuffed_frame);
-
-    puts(" Frame destuffed\n");
       
     int result = analyze_frame(destuffed_frame, destuffed_frame_length);
-
-    printf(" Frame analyzed; result=%d\n", result);
 
     int data_to_save = 0;
     if (result == 0)
         data_to_save = get_frame_data(destuffed_frame, destuffed_frame_length, buffer);
 
-    printf(" Data extracted from frame\n");
 
     char *response = malloc(SUP_SIZE); 
     build_response(response, result);
@@ -176,8 +158,6 @@ int llread(int fd, char* buffer) {
 
     int i = send_response(fd, response);
 
-    printf(" Response sent, %d writen\n", i);
-
     free(rec);
     free(destuffed_frame);
     free(response);
@@ -186,7 +166,7 @@ int llread(int fd, char* buffer) {
 }
 
 int llclose_sender(int fd){
-    tcflush(fd, 0);
+    //tcflush(fd, 0);
     (void) signal(SIGALRM, handler);
 	state state = START;
     puts("DISCONNECTING TRANSMITTER");
@@ -252,3 +232,5 @@ int llclose(int t_or_r){
     if(!t_or_r) return llclose_sender(fd);
     else return llclose_reciever(fd);
 }
+
+int get_max_frame_size(){return MAX_FRAME_SIZE;}

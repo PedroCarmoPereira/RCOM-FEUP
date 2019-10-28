@@ -15,7 +15,7 @@ int sequence_number = 0;
 
 int parseArgs(application * app, int argc,  char ** argv){
 	if (strcmp("send", argv[1]) == 0 && argc == 4){ 
-		app->fileDescriptor = open(argv[3], O_RDWR | O_NOCTTY);
+		app->fd = open(argv[3], O_RDWR | O_NOCTTY);
 		app->stat = TRANSMITTER;
 		app->port = malloc(sizeof(char *));
 		strcpy(app->port, argv[2]);
@@ -50,6 +50,58 @@ int build_control_packet(packet_type type, control_packet *packet, char * filena
 	sprintf(packet->tlvs[1].value, "%s", filename);
 
 	return 0;
+}
+
+int send_control_packet(control_packet packet, application *app){
+	char *msg = malloc(sizeof(char *));
+	msg[0] = packet.c;
+	msg[1] = (char) packet.tlvs[0].type;
+	msg[2] = (char) packet.tlvs[0].length;
+	int j = 0, i;
+	for(i = 3; i < packet.tlvs[0].length; i++) {
+		msg[i] = packet.tlvs[0].value[j];
+		j++; 
+	}
+	int k = j;
+	msg[i++] = (char) packet.tlvs[1].type;
+	msg[i++] = (char) packet.tlvs[1].length;
+	
+	for(j = 0; j < packet.tlvs[1].length; j++)  msg[i++] = packet.tlvs[1].value[j];
+
+	int size = 1 + 4 + packet.tlvs[0].length + packet.tlvs[1].length;
+	int stop = 0;
+	for(int mi = 0; mi < size; mi++) printf("%c\n", msg[mi]);
+	while(!stop){
+		int ret = llwrite(msg, size);
+		if (ret == -1) return ret;
+		if (ret == 0) stop = 1;
+	}
+	free(msg);
+	return 0;
+}
+
+int receive_control_packet(control_packet *p, application * app){
+	char *msg = malloc(sizeof(char *));
+	int ret = 0;
+	do{
+		ret = llread(msg);
+	}while(ret == 0);
+	p->c = msg[0];
+	p->tlvs[0].value = malloc(sizeof(char *));
+	p->tlvs[0].type = msg[1];
+	p->tlvs[0].length = msg[2];
+	int i;
+	for(i = 0; i < p->tlvs[0].length; i++) p->tlvs[0].value[i] = msg[3 + i];
+
+	i += 3;
+	p->tlvs[1].value = malloc(sizeof(char *));
+	p->tlvs[1].type = msg[i++];
+	p->tlvs[1].length = msg[i];
+	for(int j = 0; j < p->tlvs[1].length; j++) {
+		p->tlvs[0].value[j] = msg[i];
+		i++;
+	}
+	free(msg);
 }
 
 int free_control_packet(control_packet * packet){
@@ -109,16 +161,25 @@ int main(int argc, char ** argv){
     	puts("INCORRECT ARGUMENTS");
     	exit(-1);
     }
-
+    int packet_size = get_max_frame_size() - 6;
     if(app.stat == TRANSMITTER){
     	llopen(app.port, 0);
     	sleep(1);
+    	/*
+    	control_packet p;
+    	build_control_packet(1, &p, argv[3]);
+    	send_control_packet(p, &app);
+    	puts("AFTER SENDING CONTROL PACKET");*/
+    	//char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
+    	//llwrite(buffer, 5);
     	llclose(0);
     }
 
     else {
     	llopen(app.port, 1);
     	sleep(1);
+    	control_packet p;
+    	receive_control_packet(&p, &app);
     	llclose(1);
     }
 	return 0;
