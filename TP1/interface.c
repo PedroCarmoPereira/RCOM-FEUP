@@ -84,6 +84,7 @@ int llopen_reciever(char *port){
 }
 
 int llopen(char * port, int t_or_r){
+    set_default_settings();
 	if (!t_or_r) return llopen_sender(port);
 	else return llopen_reciever(port);
 

@@ -1,6 +1,8 @@
 #ifndef INTERFACE_H
 #define INTERFACE_H
 
+#define DATA_FRAME_SIZE	1018
+
 typedef enum status {
     TRANSMITTER,
     RECEIVER
