@@ -167,12 +167,59 @@ int validate_end_packet(control_packet packet, file_info * fi){
 
 int build_data_packet(data_packet * packet, char * buff, int size){
 	packet->c = DATA;
-	packet->data = malloc(sizeof(char *));
+	//packet->data = malloc(sizeof(char *));
 	packet->sequence_number = sequence_number % 255;
 	packet->l1 = size / 255;
 	packet->l2 = size % 255;
 	for (int i = 0; i < size; i++) packet->data[i] = buff[i];
 	sequence_number++;
+	return 0;
+}
+
+int send_data_packet(data_packet *packet){
+	char msg[DATA_FRAME_SIZE];
+
+	msg[0] = packet->c;
+	msg[1] = packet->sequence_number;
+	msg[2] = packet->l1;
+	msg[3] = packet->l2;
+
+	int j = 4;
+	for (int i = 0; i < packet->l1 * 255 + packet->l2; i++) {
+		msg[j] = packet->data[i];
+		j++;
+	}
+
+	int stop = 0;
+	while(!stop) {
+		int ret = llwrite(msg, j);
+		printf("LLWRITE Returned %d\n", ret);
+		if (ret == -1) return ret;
+		if (ret == 0) stop = 1;
+	}
+
+	return 0;	
+}
+
+int receive_data_packet(data_packet *p) {
+	char msg[DATA_FRAME_SIZE];
+
+	int ret = 0;
+
+	do {
+		ret = llread(msg);
+	} while(ret == 0);
+
+	p->c = msg[0];
+	p->sequence_number = msg[1];
+	p->l1 = msg[2];
+	p->l2 = msg[3];
+
+	int j = 4;
+	for (int i = 0; i < p->l1 * 255 + p->l2; i++) {
+		p->data[i] = msg[j];
+		j++; 
+	}
 	return 0;
 }
 
@@ -204,7 +251,15 @@ int main(int argc, char ** argv){
 		printf("control packet: %d, %d, %d,  %s", p.c, p.tlvs[1].type, p.tlvs[1].length, p.tlvs[1].value);
 
     	send_control_packet(p, &app);
-    	puts("AFTER SENDING CONTROL PACKET");
+    	puts("\nAFTER SENDING CONTROL PACKET");
+
+		data_packet d;
+		char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
+		build_data_packet(&d, buffer, 5);
+
+		puts("\nSending data packet");
+		send_data_packet(&d);
+		puts("sent data packet");
     	/*char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
     	llwrite(buffer, 5);*/
     	llclose(0);

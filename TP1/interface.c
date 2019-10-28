@@ -17,6 +17,8 @@ int try_counter = 0;
 
 struct termios oldtio,newtio;
 
+extern datalink info;
+
 void handler(){try_counter++;}
 
 int llopen_sender(char * port){
@@ -84,6 +86,7 @@ int llopen_reciever(char *port){
 }
 
 int llopen(char * port, int t_or_r){
+    set_default_settings();
 	if (!t_or_r) return llopen_sender(port);
 	else return llopen_reciever(port);
 
@@ -110,17 +113,20 @@ int llwrite(char* buffer, int length) {
                         
             if (try != try_counter){
                 printf("EXITING LLWRITE TRY: %d\n", try);
+                /*if (info.sequenceNumber == 0) info.sequenceNumber++;
+                else info.sequenceNumber--;*/
                 break;
             }
         }
+
     }
 
 
     int ret = -1;
     if (state == END){
-        puts(" RESPONSE RECEIVED\n");
+        puts("RESPONSE RECEIVED\n");
         ret = analyze_response(rec);
-        puts(" RESPONSE ANALYZED\n");
+        puts("RESPONSE ANALYZED\n");
     }
     return ret;
 }

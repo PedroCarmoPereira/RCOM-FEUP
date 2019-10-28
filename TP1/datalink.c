@@ -219,11 +219,14 @@ int send_frame(int fd, char* data, int data_length) {
     }    
 
     int w = write(fd, frame, frame_size);
-    printf("WROTE %d BYTES\n", w);
-  
+    //printf("WROTE %d BYTES\n", w);
+    
+    //printf("Sequence Number is %d\n", info.sequenceNumber);
    if (info.sequenceNumber == 0){
+       puts("SEQ 0 TO 1");
        info.sequenceNumber = 1;
    } else if (info.sequenceNumber == 1) {
+       puts("SEQ 1 TO 0");
        info.sequenceNumber = 0;
    }
 
@@ -330,7 +333,7 @@ int sender_read_response_sm(state *state, char rec) {
             else *state = START;
             break;
         case END:
-            puts("RESPONSE RECIEVED");
+            //puts("RESPONSE RECIEVED");
             break;
         default:
             break;
@@ -392,14 +395,21 @@ int read_frame_sm(state *state, char rec) {
 int analyze_response(char *rec) {
 
     char control = rec[2] & (~BIT(7));
+
+    printf("CONTROL -> %x\n", control);
+
     unsigned int seqNumber;
     if ((rec[2] & BIT(7)) != 0)
         seqNumber = 1;
     else seqNumber = 0;
     
     if (control == RR){
-        if (seqNumber == info.sequenceNumber)
+        printf("verified\n");
+        printf("seqNumber %d; info.sequenceNumber: %d\n", seqNumber, info.sequenceNumber);
+        if (seqNumber == info.sequenceNumber) {
             return 0;
+        }
+
     }
 
     return 1;
@@ -469,6 +479,8 @@ int build_response(char *response, int response_type) {
             response[2] = 0x05;
         }
     }
+
+    /*!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     else { // Reject
         if (info.sequenceNumber == 0)
             response[2] = 0x01;

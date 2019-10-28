@@ -46,6 +46,8 @@ typedef enum state {
 } state;
 
 /*AQUI VAI SE FAZER O QUE SE FAZIA N0 READER.C E WRITER.C*/
+void set_default_settings();
+
 int termios_setup_writer(int fd, struct termios *oldtio);
 
 int termios_setup_reader(int fd, struct termios *oldtio);

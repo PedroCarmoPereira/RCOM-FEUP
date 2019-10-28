@@ -3,6 +3,8 @@
 
 #include "interface.h"
 
+#define DATA_PACKET_SIZE 1012
+
 typedef struct appicationLayer {
 	int fd; /*SERIAL PORT FILE DESCRIPTOR*/
 	char * port; //PORT
@@ -43,7 +45,7 @@ typedef struct data_packet_t {
 	packet_type c;
 	char sequence_number;
 	char l1, l2;
-	char * data;
+	char data[DATA_PACKET_SIZE];
 } data_packet;
 
 
