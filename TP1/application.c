@@ -7,6 +7,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <math.h> 
 
 #include "application.h"
 #include "interface.h"
@@ -31,18 +32,16 @@ int parseArgs(application * app, int argc,  char ** argv){
 	return 0;
 }
 
-int build_control_packet(packet_type type, control_packet *packet, char * filename){
-	struct stat fileStat;
-	if (stat(filename, &fileStat)){
-		puts("ERROR: INPUT FILE NON-EXISTENT");
-		exit(-1);
-	}
+int build_control_packet(packet_type type, control_packet *packet, char * filename, int filesize){
 	packet->c = type;
+
+	int digits = (int)floor(log10(filesize)) + 1;
+	printf("Filesize %d has %d digits\n", filesize, digits);
 	
-	packet->tlvs[0].value = malloc(sizeof (int));
+	packet->tlvs[0].value = malloc(digits + 1);
 	packet->tlvs[0].type = SIZE;
-	snprintf(packet->tlvs[0].value, sizeof packet->tlvs[0].value,"%d", fileStat.st_size);
-	printf("\nACTUAL VALUE BEEING SENT %d\nHEX %x", fileStat.st_size, fileStat.st_size);
+	sprintf(packet->tlvs[0].value,"%d\0", filesize);
+	printf("\nACTUAL VALUE BEEING SENT %d\nHEX %x", filesize, filesize);
 	printf("\nSTRING %s\n", packet->tlvs[0].value);
 	packet->tlvs[0].length = strlen(packet->tlvs[0].value);
 
@@ -229,12 +228,104 @@ int free_data_packet(data_packet * packet){
 	return 0;
 }
 
-int sendFile(char *filename, application *app) {
+int send_file(char *filename, application *app) {
+	struct stat fileStat;
+	if (stat(filename, &fileStat)){
+		puts("ERROR: INPUT FILE NON-EXISTENT");
+		exit(-1);
+	}
+	int filesize = (int) fileStat.st_size;
+
+	control_packet p;
+    build_control_packet(START, &p, filename, filesize);
+	printf("control packet: type:%d, TLV: %d, %d, %s ", p.c, p.tlvs[0].type, p.tlvs[0].length, p.tlvs[0].value);
+	printf("TLV: %d, %d, %s \n", p.tlvs[1].type, p.tlvs[1].length, p.tlvs[1].value);
+
+	puts("SENDING CONTROL PACKET");
+    send_control_packet(p, app);
+    puts("CONTROL PACKET SENT");
+	puts("-------------------------");
+
+	FILE* file = fopen(filename, "rb");
+	if (file == NULL) {
+		return -1;
+	}
+
+	char *filePiece = malloc(DATA_PACKET_SIZE);
+
+	int read = 0, writen = 0;
+
+	while (writen != filesize)
+	{
+		read = fread(filePiece, sizeof(char), DATA_PACKET_SIZE, file);
+		
+		data_packet d;
+		build_data_packet(&d, filePiece, read);
+
+		send_data_packet(&d);
+
+		writen += read;		
+	}
+	
+	free(filePiece);
+
+	if (fclose(file) != 0)
+		return -1;
+
+	control_packet end;
+	build_control_packet(END, &end, filename, filesize);
+	send_control_packet(end, app);
 	
 	return 0;
 }
 
-int receiveFile(){
+int receive_file(application *app){
+	control_packet start;
+	receive_control_packet(&start, app);
+
+	//validate_start_packet()
+	char *filename = start.tlvs[1].value;
+	int filesize = atoi(start.tlvs[0].value);
+	printf("\nCreating file named %s. Expected size: %d bytes\n ", filename, filesize);
+
+	FILE* file = fopen(filename, "wb");
+	if (!file){
+    	puts("ERROR");
+		perror("fopen");
+	}
+
+	if (file == NULL) {
+		return -1;
+	}
+
+	//char *filePiece = malloc(DATA_PACKET_SIZE);
+	int savedData = 0;
+	
+	while (savedData != filesize) {
+		printf("savedData is %d and filesize is %d", savedData, filesize);
+		data_packet packet;
+		puts("Before receive");
+		receive_data_packet(&packet);
+
+		if (packet.c != 1){
+			printf("Data packet with wrong type");
+			//free(filePiece);
+			return -1;
+		}
+		int length = packet.l1 * 255 + packet.l2;
+
+		int w = fwrite(packet.data, sizeof(char), length, file);
+		if (w != length){
+			printf("Error: fwrite wrote %d of %d bytes", w, length);
+		}
+		savedData += length;
+		printf("savedData is %d and was added %d", savedData, length);
+	}
+	control_packet end;
+	puts("Before receive");
+	receive_control_packet(&end, app);
+
+	puts("Leaving receive_file");
 
 	return 0;
 }
@@ -256,7 +347,8 @@ int main(int argc, char ** argv){
     if(app.stat == TRANSMITTER){
     	llopen(app.port, 0);
     	sleep(1);
-    	control_packet p;
+		send_file(argv[3], &app);
+    	/*control_packet start;
     	build_control_packet(START, &p, argv[3]);
 
 		printf("control packet: type:%d, TLV: %d, %d, %s ", p.c, p.tlvs[0].type, p.tlvs[0].length, p.tlvs[0].value);
@@ -277,7 +369,7 @@ int main(int argc, char ** argv){
 		send_data_packet(&d);
 		send_data_packet(&d);
 		send_data_packet(&d);
-		send_data_packet(&d);
+		send_data_packet(&d);*/
     	/*char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
     	llwrite(buffer, 5);*/
     	llclose(0);
@@ -286,9 +378,10 @@ int main(int argc, char ** argv){
     else {
     	llopen(app.port, 1);
     	sleep(1);
-		control_packet p;
-		receive_control_packet(&p, &app);
-		data_packet dp;
+		/*control_packet p;
+		receive_control_packet(&p, &app);*/
+		receive_file(&app);
+		/*data_packet dp;
 		puts("\nGetting data packet");
 		receive_data_packet(&dp);
 		puts("received data packet");
@@ -297,7 +390,7 @@ int main(int argc, char ** argv){
 		receive_data_packet(&dp);
 		receive_data_packet(&dp);
 		printf("\nDATA PACKET RECEIVED: %d, %d, %d\n", dp.c, dp.l1, dp.l2);
-		for(int i = 0; i < dp.l1*255 + dp.l2; i++) printf("DATA: %x\n", dp.data[i]);
+		for(int i = 0; i < dp.l1*255 + dp.l2; i++) printf("DATA: %x\n", dp.data[i]);*/
 		//free_control_packet(&p);
 		puts("DISCONNECTING");
     	llclose(1);

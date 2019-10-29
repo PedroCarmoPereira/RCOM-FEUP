@@ -51,7 +51,7 @@ typedef struct data_packet_t {
 
 int parseArgs(application * app, int argc, char ** argv);
 
-int build_control_packet(packet_type type, control_packet * packet, char * filename);
+int build_control_packet(packet_type type, control_packet * packet, char * filename, int filesize);
 
 int free_control_packet(control_packet * packet);
 

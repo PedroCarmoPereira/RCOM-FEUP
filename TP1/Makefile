@@ -1,10 +1,10 @@
-CFLAGS	= -Wall	-Wextra -g
+CFLAGS	= -Wall	-Wextra -g -lm
 OBJECTS1	=	application.o interface.o datalink.o
 
 all:	nserial
 
 nserial: $(OBJECTS1)
-	gcc $(OBJECTS1) $(CFLAGS) -o nserial
+	gcc $(OBJECTS1) $(CFLAGS) -o nserial 
 
 
 
