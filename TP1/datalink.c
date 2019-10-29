@@ -200,17 +200,17 @@ int send_frame(int fd, char* data, int data_length) {
     char data_bcc;
     get_data_bcc(data, data_length, &data_bcc);
 
-    printf("\n Data bcc is %x\n", data_bcc);
+    //printf("\n Data bcc is %x\n", data_bcc);
 
     char *byte_stuffed_data = malloc(2 * data_length);
     int new_data_length = byte_stuffer(data, data_length, byte_stuffed_data);
 
-    puts("\nAfter byte stuffing");
+   /* puts("\nAfter byte stuffing");
     printf("Original data: %d\n", data_length);
     for (int i = 0; i < data_length; i++) printf("%x ", data[i]);
     printf("\nNew data: %d\n", new_data_length);
     for (int i = 0; i < new_data_length; i++) printf("%x ", byte_stuffed_data[i]);
-    
+    */
     int frame_size = sizeof(char) * 6 + new_data_length;
     char* frame = malloc(frame_size);
     
@@ -223,11 +223,11 @@ int send_frame(int fd, char* data, int data_length) {
         return -1;
     }
 
-    printf("\nSending Frame: ");
-    for (int i = 0; i < frame_size; i++) printf("%x ", frame[i]);
+    /*printf("\nSending Frame: ");
+    for (int i = 0; i < frame_size; i++) printf("%x ", frame[i]);*/
 
     int w = write(fd, frame, frame_size);
-    printf("\nWrote %d bytes of %d\n", w, frame_size);
+    //printf("\nWrote %d bytes of %d\n", w, frame_size);
     
     //printf("Sequence Number is %d\n", info.sequenceNumber);
    /*if (info.sequenceNumber == 0){
@@ -405,7 +405,7 @@ int analyze_response(char *rec) {
     //puts("ANALIZING RESPONSE");
 
     char control = rec[2] & (~BIT(7));
-    printf("control -> %x; RR is %x\n", control, RR);
+//    printf("control -> %x; RR is %x\n", control, RR);
 
     unsigned int receivedSequenceNumber;
     if ((rec[2] & BIT(7)) != 0)

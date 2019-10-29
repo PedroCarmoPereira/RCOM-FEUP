@@ -43,8 +43,8 @@ typedef struct file_info_t {
 
 typedef struct data_packet_t {
 	packet_type c;
-	char sequence_number;
-	char l1, l2;
+	unsigned char sequence_number;
+	unsigned char l1, l2;
 	char data[DATA_PACKET_SIZE];
 } data_packet;
 

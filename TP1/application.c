@@ -251,23 +251,26 @@ int send_file(char *filename, application *app) {
 		return -1;
 	}
 
-	char *filePiece = malloc(DATA_PACKET_SIZE);
+	char filePiece[DATA_PACKET_SIZE];// = malloc(DATA_PACKET_SIZE);
 
 	int read = 0, writen = 0;
-
+	int counter = 0;
 	while (writen != filesize)
 	{
 		read = fread(filePiece, sizeof(char), DATA_PACKET_SIZE, file);
-		
-		data_packet d;
-		build_data_packet(&d, filePiece, read);
+		if(read > 0){
+			counter += read;
+			printf("SENDER READ %d\nCOUNTER %d\n", read, counter);
+			data_packet d;
+			build_data_packet(&d, filePiece, read);
 
-		send_data_packet(&d);
+			int k = send_data_packet(&d);
+			printf("K : %d\n", k);
 
-		writen += read;		
+			writen += read;
+		}
 	}
-	
-	free(filePiece);
+	//free(filePiece);
 
 	if (fclose(file) != 0)
 		return -1;
@@ -275,6 +278,9 @@ int send_file(char *filename, application *app) {
 	control_packet end;
 	build_control_packet(END, &end, filename, filesize);
 	send_control_packet(end, app);
+
+	free_control_packet(&end);
+	free_control_packet(&p);
 	
 	return 0;
 }
@@ -314,6 +320,8 @@ int receive_file(application *app){
 		}
 		int length = packet.l1 * 255 + packet.l2;
 
+		printf("\n\nSEQUENCE_NUMBER: %d\n\n", packet.sequence_number);
+
 		int w = fwrite(packet.data, sizeof(char), length, file);
 		if (w != length){
 			printf("Error: fwrite wrote %d of %d bytes", w, length);
@@ -348,50 +356,14 @@ int main(int argc, char ** argv){
     	llopen(app.port, 0);
     	sleep(1);
 		send_file(argv[3], &app);
-    	/*control_packet start;
-    	build_control_packet(START, &p, argv[3]);
 
-		printf("control packet: type:%d, TLV: %d, %d, %s ", p.c, p.tlvs[0].type, p.tlvs[0].length, p.tlvs[0].value);
-		printf("TLV: %d, %d, %s \n", p.tlvs[1].type, p.tlvs[1].length, p.tlvs[1].value);
-
-		puts("SENDING CONTROL PACKET");
-    	send_control_packet(p, &app);
-    	puts("CONTROL PACKET SENT");
-
-		puts("-------------------------");
-		data_packet d;
-		char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
-		build_data_packet(&d, buffer, 5);
-		
-		puts("\nSending data packet");
-		send_data_packet(&d);
-		puts("sent data packet");
-		send_data_packet(&d);
-		send_data_packet(&d);
-		send_data_packet(&d);
-		send_data_packet(&d);*/
-    	/*char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
-    	llwrite(buffer, 5);*/
     	llclose(0);
     }
 
     else {
     	llopen(app.port, 1);
     	sleep(1);
-		/*control_packet p;
-		receive_control_packet(&p, &app);*/
 		receive_file(&app);
-		/*data_packet dp;
-		puts("\nGetting data packet");
-		receive_data_packet(&dp);
-		puts("received data packet");
-		receive_data_packet(&dp);
-		receive_data_packet(&dp);
-		receive_data_packet(&dp);
-		receive_data_packet(&dp);
-		printf("\nDATA PACKET RECEIVED: %d, %d, %d\n", dp.c, dp.l1, dp.l2);
-		for(int i = 0; i < dp.l1*255 + dp.l2; i++) printf("DATA: %x\n", dp.data[i]);*/
-		//free_control_packet(&p);
 		puts("DISCONNECTING");
     	llclose(1);
     }

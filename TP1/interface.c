@@ -97,9 +97,10 @@ int llwrite(char* buffer, int length) {
     state state = START;
     char rec[SUP_SIZE];
 
+    /*
     puts(" ");
     printf("llwrite received: ");
-    for (int i = 0; i < length; i++) printf("%x ", buffer[i]);
+    for (int i = 0; i < length; i++) printf("%x ", buffer[i]);*/
 
     while(try_counter < TRIES && state != END){
         state = START;
@@ -117,8 +118,6 @@ int llwrite(char* buffer, int length) {
                         
             if (try != try_counter){
                 printf("TIMEOUT: %d\n", try);
-                /*if (info.sequenceNumber == 0) info.sequenceNumber++;
-                else info.sequenceNumber--;*/
                 break;
             }
         }
@@ -128,10 +127,10 @@ int llwrite(char* buffer, int length) {
 
     int ret = -1;
     if (state == END){
-        printf("Analyzing response FLAG:%x A:%x C:%x BCC:%x FLAG:%x\n", rec[0], rec[1], rec[2], rec[3], rec[4]);
+        //printf("Analyzing response FLAG:%x A:%x C:%x BCC:%x FLAG:%x\n", rec[0], rec[1], rec[2], rec[3], rec[4]);
         ret = analyze_response(rec);
-        printf("RESPONSE ANALYZED, Returned %d\n", ret);
-        puts("---------------------");
+        //printf("RESPONSE ANALYZED, Returned %d\n", ret);
+        //puts("---------------------");
     }
     return ret;
 }
@@ -158,8 +157,8 @@ int llread(char* buffer) {
     char *destuffed_frame = malloc(MAX_FRAME_SIZE);
     int destuffed_frame_length = destuff_frame(rec, frame_length, destuffed_frame);
 
-    printf("\nDestuffed frame: %d\n", destuffed_frame_length);
-    for (int i = 0; i < destuffed_frame_length; i++) printf("%x ", destuffed_frame[i]);
+   // printf("\nDestuffed frame: %d\n", destuffed_frame_length);
+    //for (int i = 0; i < destuffed_frame_length; i++) printf("%x ", destuffed_frame[i]);
 
     //puts(" Frame destuffed\n");
       
@@ -173,21 +172,21 @@ int llread(char* buffer) {
 
     //printf(" Data extracted from frame\n");
 
-    printf("\nData extracted from frame: %d\n", data_to_save);
-    for (int i = 0; i < data_to_save; i++) printf("%x ", buffer[i]);
+    /*printf("\nData extracted from frame: %d\n", data_to_save);
+    for (int i = 0; i < data_to_save; i++) printf("%x ", buffer[i]);*/
 
 
     char *response = malloc(SUP_SIZE); 
     build_response(response, result);
 
-    for (int i = 0; i < SUP_SIZE; i++){
+    /*for (int i = 0; i < SUP_SIZE; i++){
         printf("%d - %x, ", i, response[i]);
-    }
+    }*/
 
     //sleep(2);
     int i = send_response(fd, response);
 
-    printf(" Response sent, %d writen\n", i);
+    //printf(" Response sent, %d writen\n", i);
 
     //free(rec);
     //free(destuffed_frame);

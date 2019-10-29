@@ -22,7 +22,7 @@
 #define SFD_XOR         0x5e
 #define ESC_XOR         0x5d
 #define MAX_FRAME_SIZE  1024    
-#define TRIES		    1
+#define TRIES		    3
 #define FALSE           0
 #define TRUE            1
 
