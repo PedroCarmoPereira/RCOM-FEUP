@@ -256,7 +256,8 @@ int send_file(char *filename, application *app) {
 	int read = 0, writen = 0;
 	int counter = 0;
 	while (writen != filesize)
-	{
+	{	
+		puts("SENDING DATA...");
 		read = fread(filePiece, sizeof(char), DATA_PACKET_SIZE, file);
 		if(read > 0){
 			counter += read;
@@ -264,7 +265,8 @@ int send_file(char *filename, application *app) {
 			data_packet d;
 			build_data_packet(&d, filePiece, read);
 
-			int k = send_data_packet(&d);
+			int k;
+			do{k = send_data_packet(&d);} while(k);
 			printf("K : %d\n", k);
 
 			writen += read;
@@ -310,9 +312,9 @@ int receive_file(application *app){
 	while (savedData != filesize) {
 		printf("savedData is %d and filesize is %d", savedData, filesize);
 		data_packet packet;
-		puts("Before receive");
+		puts("Before receive\n");
 		receive_data_packet(&packet);
-
+		puts("After receive\n");
 		if (packet.c != 1){
 			printf("Data packet with wrong type");
 			//free(filePiece);
@@ -341,7 +343,8 @@ int receive_file(application *app){
 int main(int argc, char ** argv){
 	application app;
 	if ((argc < 2) || (strcmp("send", argv[1])!=0 && strcmp("receive", argv[1])!=0) ||
-  	     ((strcmp("/dev/ttyS0", argv[2])!=0) && (strcmp("/dev/ttyS1", argv[2])!=0) )) {
+  	     ((strcmp("/dev/ttyS0", argv[2])!=0)  && (strcmp("/dev/ttyS1", argv[2])!=0) &&
+		 (strcmp("/dev/ttyS5", argv[2])!=0) )) {
       printf("Usage:\tnserial send_or_recieve SerialPort\n\tex: nserial send <port> <file>\n\tor: nserial receive <port>\n");
       exit(1);
     }
