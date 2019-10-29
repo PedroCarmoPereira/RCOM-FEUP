@@ -9,8 +9,6 @@
 
 #include "datalink.h"
 
-char CONTROL_FIELD = 0x00;
-
 datalink info;
 
 void set_default_settings() {
@@ -199,12 +197,19 @@ void get_data_bcc(char *buffer, int length, char *bcc) {
 }
 
 int send_frame(int fd, char* data, int data_length) {
-    char* data_bcc = malloc(1);
-    get_data_bcc(data, data_length, data_bcc);
+    char data_bcc;
+    get_data_bcc(data, data_length, &data_bcc);
+
+    printf("\n Data bcc is %x\n", data_bcc);
 
     char *byte_stuffed_data = malloc(2 * data_length);
     int new_data_length = byte_stuffer(data, data_length, byte_stuffed_data);
 
+    puts("\nAfter byte stuffing");
+    printf("Original data: %d\n", data_length);
+    for (int i = 0; i < data_length; i++) printf("%x ", data[i]);
+    printf("\nNew data: %d\n", new_data_length);
+    for (int i = 0; i < new_data_length; i++) printf("%x ", byte_stuffed_data[i]);
     
     int frame_size = sizeof(char) * 6 + new_data_length;
     char* frame = malloc(frame_size);
@@ -213,31 +218,34 @@ int send_frame(int fd, char* data, int data_length) {
         //error
         free(frame);
         free(byte_stuffed_data);
-        free(data_bcc);
+        //free(data_bcc);
 
         return -1;
-    }    
+    }
+
+    printf("\nSending Frame: ");
+    for (int i = 0; i < frame_size; i++) printf("%x ", frame[i]);
 
     int w = write(fd, frame, frame_size);
-    //printf("WROTE %d BYTES\n", w);
+    printf("\nWrote %d bytes of %d\n", w, frame_size);
     
     //printf("Sequence Number is %d\n", info.sequenceNumber);
-   if (info.sequenceNumber == 0){
-       puts("SEQ 0 TO 1");
+   /*if (info.sequenceNumber == 0){
+       //puts("SEQ 0 TO 1");
        info.sequenceNumber = 1;
    } else if (info.sequenceNumber == 1) {
-       puts("SEQ 1 TO 0");
+       //puts("SEQ 1 TO 0");
        info.sequenceNumber = 0;
-   }
+   }*/
 
     free(frame);
     free(byte_stuffed_data);
-    free(data_bcc);
+    //free(data_bcc);
 
     return w;
 }
 
-int build_frame(char *frame, int frame_size, char *data, int data_size, char *data_bcc) {
+int build_frame(char *frame, int frame_size, char *data, int data_size, char data_bcc) {
     /* frame - FLAG | Endereço | Controlo | DADOS | FLAG */
     if (frame_size > data_size + 6)
         return -1;
@@ -250,7 +258,7 @@ int build_frame(char *frame, int frame_size, char *data, int data_size, char *da
     frame[0] = SFD;
     frame[1] = CE_RR;
     frame[2] = control_field;
-    frame[3] = CE_RR ^ CONTROL_FIELD;
+    frame[3] = CE_RR ^ control_field;
 
     int i = 4;
     for (int j = 0; j < data_size; j++) {
@@ -258,13 +266,13 @@ int build_frame(char *frame, int frame_size, char *data, int data_size, char *da
         i++;
     }
     
-    frame[i] =  *data_bcc;
+    frame[i] = data_bcc;
     frame[++i] = SFD;
     
     return 0;
 }
 
-int byte_stuffer(char *buffer, int length, char *newBuffer) {
+int byte_stuffer(char * buffer, int length, char *newBuffer) {
 
     int j = 0;
     for (int i = 0; i < length; i++){
@@ -343,15 +351,15 @@ int sender_read_response_sm(state *state, char rec) {
 }
 
 int read_frame_sm(state *state, char rec) {
-    printf("READ: %x\n", rec);
+    //printf("READ: %x\n", rec);
     static char a, c; 
     switch (*state) {
     case START:
-        puts("START");
+        //puts("START");
         if (rec == SFD) *state = FLAG_RCV;
         break;
     case FLAG_RCV:
-        puts("FLAG");
+        //puts("FLAG");
         if(rec == CE_RR) {
             a = rec;
             *state = A_RCV;
@@ -359,8 +367,8 @@ int read_frame_sm(state *state, char rec) {
         else if (rec != SFD) *state = START;                   
         break;
     case A_RCV:
-        puts("A");
-        if((rec & (~BIT(7))) == 0x00) {
+        //puts("A");
+        if((rec & (~BIT(6))) == 0x00) {
             c = rec;
             *state = C_RCV;
         }
@@ -368,22 +376,22 @@ int read_frame_sm(state *state, char rec) {
         else *state = START;
         break;
     case C_RCV:
-        puts("C");
+        //puts("C");
         if (rec == (a ^ c)) *state = BCC_RCV;
         else if (rec == SFD) *state = FLAG_RCV;
         else *state = START;
         break;
     case BCC_RCV:
-        puts("BCC");
+        //puts("BCC");
         *state = DATA_RCV;
         break;
     case DATA_RCV:
-        puts("DATA");
+        //puts("DATA");
         if (rec == SFD) *state = END;
         break;
     case END:
-        puts("FLAG");
-        puts("RESPONSE RECIEVED");
+        //puts("FLAG");
+        //puts("RESPONSE RECIEVED");
         break;
     default:
         break;
@@ -394,19 +402,21 @@ int read_frame_sm(state *state, char rec) {
 
 int analyze_response(char *rec) {
 
+    //puts("ANALIZING RESPONSE");
+
     char control = rec[2] & (~BIT(7));
+    printf("control -> %x; RR is %x\n", control, RR);
 
-    printf("CONTROL -> %x\n", control);
-
-    unsigned int seqNumber;
+    unsigned int receivedSequenceNumber;
     if ((rec[2] & BIT(7)) != 0)
-        seqNumber = 1;
-    else seqNumber = 0;
+        receivedSequenceNumber = 1;
+    else receivedSequenceNumber = 0;
     
     if (control == RR){
-        printf("verified\n");
-        printf("seqNumber %d; info.sequenceNumber: %d\n", seqNumber, info.sequenceNumber);
-        if (seqNumber == info.sequenceNumber) {
+        //printf("verified\n");
+        //printf("receivedSequenceNumber %d; info.sequenceNumber: %d\n", receivedSequenceNumber, info.sequenceNumber);
+        if (info.sequenceNumber != receivedSequenceNumber) {
+            info.sequenceNumber = receivedSequenceNumber;
             return 0;
         }
 
@@ -457,7 +467,7 @@ int analyze_frame(char *frame, int frame_length) {
 
 int get_frame_data(char *frame, int length, char *data){
     int j = 0;
-    for (int i = 4; i < length - 3; i++) {
+    for (int i = 4; i < length - 2; i++) {
         data[j] = frame[i];
         j++;
     }

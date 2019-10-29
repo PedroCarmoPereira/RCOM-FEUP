@@ -48,7 +48,7 @@ int build_control_packet(packet_type type, control_packet *packet, char * filena
 
 	printf("\nSIZE: %d\n", packet->tlvs[0].length);
 
-	packet->tlvs[1].value = malloc(sizeof(char *));
+	packet->tlvs[1].value = malloc(sizeof(char) * strlen(filename));
 	packet->tlvs[1].type = NAME;
 	sprintf(packet->tlvs[1].value, "%s", filename);
 	packet->tlvs[1].length = strlen(packet->tlvs[1].value);
@@ -57,27 +57,28 @@ int build_control_packet(packet_type type, control_packet *packet, char * filena
 }
 
 int send_control_packet(control_packet packet, application *app){
-	char *msg = malloc(sizeof(char *));
+	int sz = 6 + packet.tlvs[0].length + packet.tlvs[1].length;
+	char *msg = malloc(sizeof(char) * sz);
 	int i = 0;
 	msg[i] = packet.c;
 	i++;
 	msg[i] = (char) packet.tlvs[0].type;
 	i++;
 	msg[i] = (char) packet.tlvs[0].length;
-	printf("Length size -> %x\n", msg[i]);
-	printf("\n%d\n", packet.tlvs[0].length);
+	//printf("Length size -> %x\n", msg[i]);
+	//printf("\n%d\n", packet.tlvs[0].length);
 	i++;
 	int j;
 	for(j = 0; j < packet.tlvs[0].length; j++) {
 		msg[i] = packet.tlvs[0].value[j];
-		printf("SIZE VALUE %d, %x\n", j, msg[i]);
+		//printf("SIZE VALUE %d, %x\n", j, msg[i]);
 		i++;
 	}
 
 	msg[i] = (char) packet.tlvs[1].type;
 	i++;
 	msg[i] = (char) packet.tlvs[1].length + 1;
-	printf("Length filename -> %x", msg[i]);
+	//printf("Length filename -> %x", msg[i]);
 	i++;
 	
 	for(j = 0; j < packet.tlvs[1].length; j++)  {
@@ -88,8 +89,9 @@ int send_control_packet(control_packet packet, application *app){
 
 	int size = 5 + packet.tlvs[0].length + packet.tlvs[1].length + 1;
 	int stop = 0;
-	puts("SENDING");
-	for(int mi = 0; mi < size; mi++) printf("%x\n", msg[mi]);
+	puts("Putting in llwrite:");
+	for(int mi = 0; mi < size; mi++) printf("%x  ", msg[mi]);
+	puts(" ");
 	while(!stop){
 		int ret = llwrite(msg, size);
 		if (ret == -1) return ret;
@@ -227,6 +229,16 @@ int free_data_packet(data_packet * packet){
 	return 0;
 }
 
+int sendFile(char *filename, application *app) {
+	
+	return 0;
+}
+
+int receiveFile(){
+
+	return 0;
+}
+
 int main(int argc, char ** argv){
 	application app;
 	if ((argc < 2) || (strcmp("send", argv[1])!=0 && strcmp("receive", argv[1])!=0) ||
@@ -247,19 +259,25 @@ int main(int argc, char ** argv){
     	control_packet p;
     	build_control_packet(START, &p, argv[3]);
 
-		printf("control packet: %d, %d, %d,  %s", p.c, p.tlvs[0].type, p.tlvs[0].length, p.tlvs[0].value);
-		printf("control packet: %d, %d, %d,  %s", p.c, p.tlvs[1].type, p.tlvs[1].length, p.tlvs[1].value);
+		printf("control packet: type:%d, TLV: %d, %d, %s ", p.c, p.tlvs[0].type, p.tlvs[0].length, p.tlvs[0].value);
+		printf("TLV: %d, %d, %s \n", p.tlvs[1].type, p.tlvs[1].length, p.tlvs[1].value);
 
+		puts("SENDING CONTROL PACKET");
     	send_control_packet(p, &app);
-    	puts("\nAFTER SENDING CONTROL PACKET");
+    	puts("CONTROL PACKET SENT");
 
+		puts("-------------------------");
 		data_packet d;
 		char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
 		build_data_packet(&d, buffer, 5);
-
+		
 		puts("\nSending data packet");
 		send_data_packet(&d);
 		puts("sent data packet");
+		send_data_packet(&d);
+		send_data_packet(&d);
+		send_data_packet(&d);
+		send_data_packet(&d);
     	/*char buffer[5] = {'A', 'B', 'C', 'D', 'E'};
     	llwrite(buffer, 5);*/
     	llclose(0);
@@ -271,10 +289,17 @@ int main(int argc, char ** argv){
 		control_packet p;
 		receive_control_packet(&p, &app);
 		data_packet dp;
+		puts("\nGetting data packet");
+		receive_data_packet(&dp);
+		puts("received data packet");
+		receive_data_packet(&dp);
+		receive_data_packet(&dp);
+		receive_data_packet(&dp);
 		receive_data_packet(&dp);
 		printf("\nDATA PACKET RECEIVED: %d, %d, %d\n", dp.c, dp.l1, dp.l2);
-		for(int i = 0; i < dp.l1*255 + dp.l2; i++) printf("DATA: %d\n", dp.data[i]);
+		for(int i = 0; i < dp.l1*255 + dp.l2; i++) printf("DATA: %x\n", dp.data[i]);
 		//free_control_packet(&p);
+		puts("DISCONNECTING");
     	llclose(1);
     }
 	return 0;

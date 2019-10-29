@@ -22,7 +22,7 @@
 #define SFD_XOR         0x5e
 #define ESC_XOR         0x5d
 #define MAX_FRAME_SIZE  1024    
-#define TRIES		    3
+#define TRIES		    1
 #define FALSE           0
 #define TRUE            1
 
@@ -68,7 +68,7 @@ void disc_sm(state *s, char rec, int t_or_r);
 
 int send_frame(int fd, char* data, int data_length);
 
-int build_frame(char *frame, int frame_size, char *data, int data_size, char *data_bcc);
+int build_frame(char *frame, int frame_size, char *data, int data_size, char data_bcc);
 
 void get_data_bcc(char *buffer, int length, char *bcc);
 
