@@ -322,7 +322,7 @@ int receive_file(application *app){
 		}
 		int length = packet.l1 * 255 + packet.l2;
 
-		printf("\n\nSEQUENCE_NUMBER: %d\n\n", packet.sequence_number);
+		printf("\nSEQUENCE_NUMBER: %d\n\n", packet.sequence_number);
 
 		int w = fwrite(packet.data, sizeof(char), length, file);
 		if (w != length){

@@ -164,7 +164,7 @@ int llread(char* buffer) {
       
     int result = analyze_frame(destuffed_frame, destuffed_frame_length);
 
-    //printf(" Frame analyzed; result=%d\n", result);
+    printf(" Frame analyzed; result=%d\n", result);
 
     int data_to_save = 0;
     if (result == 0)
@@ -176,7 +176,7 @@ int llread(char* buffer) {
     for (int i = 0; i < data_to_save; i++) printf("%x ", buffer[i]);*/
 
 
-    char *response = malloc(SUP_SIZE); 
+    char *response = malloc(SUP_SIZE);
     build_response(response, result);
 
     /*for (int i = 0; i < SUP_SIZE; i++){
@@ -184,9 +184,9 @@ int llread(char* buffer) {
     }*/
 
     //sleep(2);
-    int i = send_response(fd, response);
 
-    //printf(" Response sent, %d writen\n", i);
+    int i = send_response(fd, response);
+    printf(" Response sent, %d writen\n", i);
 
     //free(rec);
     //free(destuffed_frame);

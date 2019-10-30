@@ -432,11 +432,15 @@ int destuff_frame(char *rec, int length, char* destuffed_frame){
 int analyze_frame(char *frame, int frame_length) {
     char control_field = frame[2];
 
+    puts("Analizing frame");
+    printf("Control Field: %x\n", control_field);
+
     unsigned int sequenceNumber;
     if (control_field == 0x40) 
         sequenceNumber = 1;
     else if (control_field == 0x00)
         sequenceNumber = 0;
+    else return -1;
 
     int data_length = frame_length - 6;
     char *data = &frame[4];
@@ -444,21 +448,28 @@ int analyze_frame(char *frame, int frame_length) {
     char new_bcc;
     get_data_bcc(data, data_length, &new_bcc);
 
+    printf("newbcc %x = %x bcc in packet\n", new_bcc, bcc_field);
+
     if (new_bcc == bcc_field) {
         if (sequenceNumber == info.sequenceNumber){
             // RR and ACCEPT DATA
+            puts("rr");
             return 0;
         }
         else {
             // RR and REJECT DATA
+            puts("rr but repeated");
             return 1;
         } 
     } 
     else {
+    	puts("unmatched bcc");
         if (sequenceNumber == info.sequenceNumber){ // REJ and REJECT DATA
+            puts("rej");
             return -1;
         }
         else { // RR and REJECT DATA
+        	puts("rr");
             return 1;
         } 
 
