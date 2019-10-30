@@ -190,14 +190,8 @@ int send_data_packet(data_packet *packet){
 		j++;
 	}
 
-	int stop = 0;
-	while(!stop) {
-		int ret = llwrite(msg, j);
-		printf("LLWRITE Returned %d\n", ret);
-		if (ret == -1) return ret;
-		if (ret == 0) stop = 1;
-	}
-
+	int ret = llwrite(msg, j);
+	printf("LLWRITE WROTE %d BYTES\n", ret);
 	return 0;	
 }
 
@@ -206,9 +200,9 @@ int receive_data_packet(data_packet * p){
 
 	int ret = 0;
 
-	do {
+	//do {
 		ret = llread(msg);
-	} while(ret == 0);
+	//} while(ret == 0);
 
 	p->c = msg[0];
 	p->sequence_number = msg[1];
@@ -291,6 +285,8 @@ int receive_file(application *app){
 	control_packet start;
 	receive_control_packet(&start, app);
 
+	static unsigned char expected_seq_no = 0;
+
 	//validate_start_packet()
 	char *filename = start.tlvs[1].value;
 	int filesize = atoi(start.tlvs[0].value);
@@ -309,7 +305,7 @@ int receive_file(application *app){
 	//char *filePiece = malloc(DATA_PACKET_SIZE);
 	int savedData = 0;
 	
-	while (savedData != filesize) {
+	while (savedData < filesize) {
 		printf("savedData is %d and filesize is %d", savedData, filesize);
 		data_packet packet;
 		puts("Before receive\n");
@@ -322,6 +318,11 @@ int receive_file(application *app){
 		}
 		int length = packet.l1 * 255 + packet.l2;
 
+		if ( packet.sequence_number != expected_seq_no){
+			printf("\n\nEXPECTED: %d GOT: %d\n\n", expected_seq_no, packet.sequence_number);
+			continue;
+		}
+
 		printf("\nSEQUENCE_NUMBER: %d\n\n", packet.sequence_number);
 
 		int w = fwrite(packet.data, sizeof(char), length, file);
@@ -330,6 +331,8 @@ int receive_file(application *app){
 		}
 		savedData += length;
 		printf("savedData is %d and was added %d", savedData, length);
+
+		expected_seq_no++;
 	}
 	control_packet end;
 	puts("Before receive");

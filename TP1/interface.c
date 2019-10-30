@@ -93,9 +93,12 @@ int llopen(char * port, int t_or_r){
 }
 
 int llwrite(char* buffer, int length) {
-    try_counter = 0;
-    state state = START;
-    char rec[SUP_SIZE];
+	int ret = -1;
+	int w;
+	while(1){
+    	try_counter = 0;
+    	state state = START;
+    	char rec[SUP_SIZE];
 
     /*
     puts(" ");
@@ -105,7 +108,7 @@ int llwrite(char* buffer, int length) {
     while(try_counter < TRIES && state != END){
         state = START;
         int try = try_counter;
-        send_frame(fd, buffer, length);
+        w = send_frame(fd, buffer, length);
         alarm(5);
 
         int i = 0;
@@ -124,15 +127,18 @@ int llwrite(char* buffer, int length) {
 
     }
     alarm(0);
-
-    int ret = -1;
     if (state == END){
         //printf("Analyzing response FLAG:%x A:%x C:%x BCC:%x FLAG:%x\n", rec[0], rec[1], rec[2], rec[3], rec[4]);
         ret = analyze_response(rec);
         //printf("RESPONSE ANALYZED, Returned %d\n", ret);
         //puts("---------------------");
     }
-    return ret;
+
+    if(ret <= 0) break;
+
+	}
+
+    return w;
 }
 
 int llread(char* buffer) {
