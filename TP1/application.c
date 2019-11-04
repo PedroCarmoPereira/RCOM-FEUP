@@ -8,11 +8,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <math.h> 
+#include <time.h>
 
 #include "application.h"
 #include "interface.h"
 
 int sequence_number = 0;
+int fs_test_var;
 
 int parseArgs(application * app, int argc,  char ** argv){
 	if (strcmp("send", argv[1]) == 0 && argc == 4){ 
@@ -177,7 +179,7 @@ int build_data_packet(data_packet * packet, char * buff, int size){
 }
 
 int send_data_packet(data_packet *packet){
-	char msg[DATA_FRAME_SIZE];
+	char msg[(DATA_PACKET_SIZE + 10)*2];
 
 	msg[0] = packet->c;
 	msg[1] = packet->sequence_number;
@@ -196,13 +198,14 @@ int send_data_packet(data_packet *packet){
 		printf("LLWRITE Returned %d\n", ret);
 		if (ret == -1) return ret;
 		if (ret == 0) stop = 1;
+		//if (ret == 1) return ret;
 	}
 
 	return 0;	
 }
 
 int receive_data_packet(data_packet * p){
-	char msg[DATA_FRAME_SIZE + 10]; //= malloc(sizeof(char *));
+	char msg[(DATA_PACKET_SIZE + 10)* 2]; //= malloc(sizeof(char *));
 
 	int ret = 0;
 
@@ -268,7 +271,7 @@ int send_file(char *filename, application *app) {
 			int k;
 			k = send_data_packet(&d);//} while(k != 0 && k != -1);
 			printf("K : %d\n", k);
-
+			if(k == 1) continue;
 			writen += read;
 		}
 	}
@@ -294,6 +297,7 @@ int receive_file(application *app){
 	//validate_start_packet()
 	char *filename = start.tlvs[1].value;
 	int filesize = atoi(start.tlvs[0].value);
+	fs_test_var = filesize;
 	printf("\nCreating file named %s. Expected size: %d bytes\n ", filename, filesize);
 
 	FILE* file = fopen(filename, "wb");
@@ -370,9 +374,14 @@ int main(int argc, char ** argv){
     else {
     	llopen(app.port, 1);
     	sleep(1);
+		clock_t time = clock();
 		receive_file(&app);
 		puts("DISCONNECTING");
     	llclose(1);
+		time = clock() - time;
+		double secs = ((double)time)/CLOCKS_PER_SEC;
+		printf("PROGRAM TOOK : %lf\n", secs);
+		printf("R = %lf b/s\n", (fs_test_var*8)/secs);
     }
 	return 0;
 }
