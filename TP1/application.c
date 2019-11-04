@@ -258,6 +258,7 @@ int send_file(char *filename, application *app) {
 
 	int read = 0, writen = 0;
 	int counter = 0;
+	int seq = 0;
 	while (writen != filesize)
 	{	
 		puts("SENDING DATA...");
@@ -268,8 +269,15 @@ int send_file(char *filename, application *app) {
 			data_packet d;
 			build_data_packet(&d, filePiece, read);
 
+			clock_t t = clock();
+
 			int k;
 			k = send_data_packet(&d);//} while(k != 0 && k != -1);
+
+			t = clock() - t;
+			double secs = ((double)t)/CLOCKS_PER_SEC;
+			printf("TIME USED FOR PACKET %d: %lf\n", seq, secs);
+			seq++;
 			printf("K : %d\n", k);
 			if(k == 1) continue;
 			writen += read;
