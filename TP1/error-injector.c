@@ -20,7 +20,7 @@ void inject_data_bcc(char * data, int size){
     }
 }
 
-void inject_frame_bcc(char * frame){
+void inject_frame(char * frame){
     if(!seeded) {
         srand(time(NULL));
         seeded = 1;
@@ -28,6 +28,6 @@ void inject_frame_bcc(char * frame){
     unsigned int random_no = rand() % 100 + 1;
     if(random_no <= FH_ER){
         puts("FRAME INJECTED");
-        negateByte(&frame[3]);
+        frame[3] = 0x7e;
     }
 }

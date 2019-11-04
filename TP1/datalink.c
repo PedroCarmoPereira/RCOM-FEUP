@@ -221,7 +221,7 @@ int send_frame(int fd, char* data, int data_length) {
         return -1;
     }
 
-    inject_frame_bcc(frame);
+    inject_frame(frame);
     /*printf("\nSending Frame: ");
     for (int i = 0; i < frame_size; i++) printf("%x ", frame[i]);*/
 
@@ -358,7 +358,7 @@ int read_frame_sm(state *state, char rec) {
         if (rec == SFD) *state = FLAG_RCV;
         break;
     case FLAG_RCV:
-        //puts("FLAG");
+        puts("FLAG");
         if(rec == CE_RR) {
             a = rec;
             *state = A_RCV;
