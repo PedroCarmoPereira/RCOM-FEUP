@@ -3,7 +3,7 @@
 
 #include "interface.h"
 
-#define DATA_PACKET_SIZE 512
+#define DATA_PACKET_SIZE 1000
 
 typedef struct appicationLayer {
 	int fd; /*SERIAL PORT FILE DESCRIPTOR*/

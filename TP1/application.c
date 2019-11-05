@@ -12,6 +12,7 @@
 
 #include "application.h"
 #include "interface.h"
+#include "error-injector.h"
 
 int sequence_number = 0;
 int fs_test_var;
@@ -38,16 +39,12 @@ int build_control_packet(packet_type type, control_packet *packet, char * filena
 	packet->c = type;
 
 	int digits = (int)floor(log10(filesize)) + 1;
-	printf("Filesize %d has %d digits\n", filesize, digits);
 	
 	packet->tlvs[0].value = malloc(digits + 1);
 	packet->tlvs[0].type = SIZE;
 	sprintf(packet->tlvs[0].value,"%d\0", filesize);
-	printf("\nACTUAL VALUE BEEING SENT %d\nHEX %x", filesize, filesize);
-	printf("\nSTRING %s\n", packet->tlvs[0].value);
-	packet->tlvs[0].length = strlen(packet->tlvs[0].value);
 
-	printf("\nSIZE: %d\n", packet->tlvs[0].length);
+	packet->tlvs[0].length = strlen(packet->tlvs[0].value);
 
 	packet->tlvs[1].value = malloc(sizeof(char) * strlen(filename));
 	packet->tlvs[1].type = NAME;
@@ -90,8 +87,8 @@ int send_control_packet(control_packet packet, application *app){
 
 	int size = 5 + packet.tlvs[0].length + packet.tlvs[1].length + 1;
 	int stop = 0;
-	puts("Putting in llwrite:");
-	for(int mi = 0; mi < size; mi++) printf("%x  ", msg[mi]);
+	/*puts("Putting in llwrite:");
+	for(int mi = 0; mi < size; mi++) printf("%x  ", msg[mi]);*/
 	puts(" ");
 	while(!stop){
 		int ret = llwrite(msg, size);
@@ -195,7 +192,10 @@ int send_data_packet(data_packet *packet){
 	int stop = 0;
 	while(!stop) {
 		int ret = llwrite(msg, j);
-		printf("LLWRITE Returned %d\n", ret);
+
+		/*if (ret) puts("REJ: Receiver rejected;");
+		else if (ret == 0) puts("RR: Receiver accepted;");*/
+		
 		if (ret == -1) return ret;
 		if (ret == 0) stop = 1;
 		//if (ret == 1) return ret;
@@ -240,13 +240,14 @@ int send_file(char *filename, application *app) {
 	int filesize = (int) fileStat.st_size;
 
 	control_packet p;
+	printf("Sending %s - size: %d bytes\n", filename, filesize);
     build_control_packet(START, &p, filename, filesize);
+    puts(" ");
+	puts("SENDING CONTROL PACKET");
 	printf("control packet: type:%d, TLV: %d, %d, %s ", p.c, p.tlvs[0].type, p.tlvs[0].length, p.tlvs[0].value);
 	printf("TLV: %d, %d, %s \n", p.tlvs[1].type, p.tlvs[1].length, p.tlvs[1].value);
-
-	puts("SENDING CONTROL PACKET");
     send_control_packet(p, app);
-    puts("CONTROL PACKET SENT");
+    puts("CONTROL PACKET SENT\n");
 	puts("-------------------------");
 
 	FILE* file = fopen(filename, "rb");
@@ -256,35 +257,46 @@ int send_file(char *filename, application *app) {
 
 	char filePiece[DATA_PACKET_SIZE];// = malloc(DATA_PACKET_SIZE);
 
+	int outf = fopen("OUTPUT_FILE.txt", "a");
+
+	fprintf(outf, "STAT FIELDS\n FER: bcc- %d data- %d;  T_PROP: %d; BAUDRATE: 9600; PACKET SIZE: %d;\n\n", FH_ER, DATA_ER, T_PROP_DELAY, DATA_PACKET_SIZE);
+
 	int read = 0, writen = 0;
 	int counter = 0;
 	int seq = 0;
+	puts("SENDING DATA...\n");
 	while (writen != filesize)
 	{	
-		puts("SENDING DATA...");
 		read = fread(filePiece, sizeof(char), DATA_PACKET_SIZE, file);
 		if(read > 0){
 			counter += read;
-			printf("SENDER READ %d\nCOUNTER %d\n", read, counter);
+			//printf("%d bytes read from file\n", read);
 			data_packet d;
 			build_data_packet(&d, filePiece, read);
 
-			clock_t t = clock();
-
+			printf("Sending data packet no. %d\n", seq);
 			int k;
+			clock_t t = clock();
 			k = send_data_packet(&d);//} while(k != 0 && k != -1);
 
 			t = clock() - t;
 			double secs = ((double)t)/CLOCKS_PER_SEC;
+			puts("Done.");
 			printf("TIME USED FOR PACKET %d: %lf\n", seq, secs);
 			seq++;
-			printf("K : %d\n", k);
+
 			if(k == 1) continue;
 			writen += read;
+			printf("%d bytes sent (of %d bytes)\n\n", writen, filesize);
+
+			fprintf(outf, "Time used in packet no.%d -  %lf seconds\n", seq, secs);
 		}
 	}
-	//free(filePiece);
 
+	fprintf(outf, "-----------------\n\n\n");
+
+	//free(filePiece);
+	puts("\nDATA SENT\n");
 	if (fclose(file) != 0)
 		return -1;
 

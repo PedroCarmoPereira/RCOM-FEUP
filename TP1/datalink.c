@@ -224,6 +224,7 @@ int send_frame(int fd, char* data, int data_length) {
     inject_frame(frame);
     /*printf("\nSending Frame: ");
     for (int i = 0; i < frame_size; i++) printf("%x ", frame[i]);*/
+    usleep(T_PROP_DELAY);
 
     int w = write(fd, frame, frame_size);
     //printf("\nWrote %d bytes of %d\n", w, frame_size);

@@ -117,7 +117,7 @@ int llwrite(char* buffer, int length) {
             }
                         
             if (try != try_counter){
-                printf("TIMEOUT: %d\n", try);
+                printf("TIMEOUT: no%d\n", try);
                 break;
             }
         }

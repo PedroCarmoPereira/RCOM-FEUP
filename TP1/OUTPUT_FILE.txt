@@ -1,0 +1,308 @@
+STAT FIELDS
+ FER: bcc- 0 data- 0;  T_PROP: 0; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.551074 seconds
+Time used in packet no.2 -  0.555766 seconds
+Time used in packet no.3 -  0.551604 seconds
+Time used in packet no.4 -  0.551573 seconds
+Time used in packet no.5 -  0.550593 seconds
+Time used in packet no.6 -  0.552830 seconds
+Time used in packet no.7 -  0.554148 seconds
+Time used in packet no.8 -  0.540324 seconds
+Time used in packet no.9 -  0.552441 seconds
+Time used in packet no.10 -  0.552309 seconds
+Time used in packet no.11 -  0.552179 seconds
+Time used in packet no.12 -  0.551660 seconds
+Time used in packet no.13 -  0.550945 seconds
+Time used in packet no.14 -  0.544491 seconds
+Time used in packet no.15 -  0.551099 seconds
+Time used in packet no.16 -  0.548101 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 0;  T_PROP: 0; BAUDRATE: 19200; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.272384 seconds
+Time used in packet no.2 -  0.277709 seconds
+Time used in packet no.3 -  0.276161 seconds
+Time used in packet no.4 -  0.274043 seconds
+Time used in packet no.5 -  0.276011 seconds
+Time used in packet no.6 -  0.276436 seconds
+Time used in packet no.7 -  0.277290 seconds
+Time used in packet no.8 -  0.275612 seconds
+Time used in packet no.9 -  0.276207 seconds
+Time used in packet no.10 -  0.276124 seconds
+Time used in packet no.11 -  0.276416 seconds
+Time used in packet no.12 -  0.275824 seconds
+Time used in packet no.13 -  0.275865 seconds
+Time used in packet no.14 -  0.271086 seconds
+Time used in packet no.15 -  0.275445 seconds
+Time used in packet no.16 -  0.276132 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 0;  T_PROP: 0; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.133662 seconds
+Time used in packet no.2 -  0.138949 seconds
+Time used in packet no.3 -  0.138031 seconds
+Time used in packet no.4 -  0.137714 seconds
+Time used in packet no.5 -  0.137904 seconds
+Time used in packet no.6 -  0.137982 seconds
+Time used in packet no.7 -  0.138570 seconds
+Time used in packet no.8 -  0.136417 seconds
+Time used in packet no.9 -  0.136971 seconds
+Time used in packet no.10 -  0.138184 seconds
+Time used in packet no.11 -  0.138229 seconds
+Time used in packet no.12 -  0.137885 seconds
+Time used in packet no.13 -  0.138018 seconds
+Time used in packet no.14 -  0.137797 seconds
+Time used in packet no.15 -  0.138056 seconds
+Time used in packet no.16 -  0.137956 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 0;  T_PROP: 1; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.136549 seconds
+Time used in packet no.2 -  0.138931 seconds
+Time used in packet no.3 -  0.138347 seconds
+Time used in packet no.4 -  0.137890 seconds
+Time used in packet no.5 -  0.138258 seconds
+Time used in packet no.6 -  0.138129 seconds
+Time used in packet no.7 -  0.138317 seconds
+Time used in packet no.8 -  0.138684 seconds
+Time used in packet no.9 -  0.139782 seconds
+Time used in packet no.10 -  0.139540 seconds
+Time used in packet no.11 -  0.139755 seconds
+Time used in packet no.12 -  0.139496 seconds
+Time used in packet no.13 -  0.139495 seconds
+Time used in packet no.14 -  0.139194 seconds
+Time used in packet no.15 -  0.139428 seconds
+Time used in packet no.16 -  0.139496 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 0;  T_PROP: 10; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.137446 seconds
+Time used in packet no.2 -  0.139051 seconds
+Time used in packet no.3 -  0.138283 seconds
+Time used in packet no.4 -  0.138029 seconds
+Time used in packet no.5 -  0.138241 seconds
+Time used in packet no.6 -  0.137206 seconds
+Time used in packet no.7 -  0.138524 seconds
+Time used in packet no.8 -  0.135829 seconds
+Time used in packet no.9 -  0.136279 seconds
+Time used in packet no.10 -  0.138275 seconds
+Time used in packet no.11 -  0.138356 seconds
+Time used in packet no.12 -  0.137899 seconds
+Time used in packet no.13 -  0.137993 seconds
+Time used in packet no.14 -  0.137701 seconds
+Time used in packet no.15 -  0.137612 seconds
+Time used in packet no.16 -  0.136019 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 0;  T_PROP: 10000; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.139577 seconds
+Time used in packet no.2 -  0.140592 seconds
+Time used in packet no.3 -  0.139639 seconds
+Time used in packet no.4 -  0.135729 seconds
+Time used in packet no.5 -  0.137373 seconds
+Time used in packet no.6 -  0.138352 seconds
+Time used in packet no.7 -  0.138849 seconds
+Time used in packet no.8 -  0.138027 seconds
+Time used in packet no.9 -  0.136385 seconds
+Time used in packet no.10 -  0.139386 seconds
+Time used in packet no.11 -  0.139566 seconds
+Time used in packet no.12 -  0.139574 seconds
+Time used in packet no.13 -  0.139561 seconds
+Time used in packet no.14 -  0.139324 seconds
+Time used in packet no.15 -  0.134220 seconds
+Time used in packet no.16 -  0.138010 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 1;  T_PROP: 10000; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.126416 seconds
+Time used in packet no.2 -  0.138925 seconds
+Time used in packet no.3 -  0.138266 seconds
+Time used in packet no.4 -  0.137560 seconds
+Time used in packet no.5 -  0.139712 seconds
+Time used in packet no.6 -  0.139858 seconds
+Time used in packet no.7 -  0.140347 seconds
+Time used in packet no.8 -  0.139416 seconds
+Time used in packet no.9 -  0.139135 seconds
+Time used in packet no.10 -  0.139845 seconds
+Time used in packet no.11 -  0.139865 seconds
+Time used in packet no.12 -  0.139511 seconds
+Time used in packet no.13 -  0.135063 seconds
+Time used in packet no.14 -  0.137388 seconds
+Time used in packet no.15 -  0.137828 seconds
+Time used in packet no.16 -  0.138031 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 5;  T_PROP: 10000; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.139631 seconds
+Time used in packet no.2 -  0.140667 seconds
+Time used in packet no.3 -  0.135618 seconds
+Time used in packet no.4 -  0.137320 seconds
+Time used in packet no.5 -  0.138284 seconds
+Time used in packet no.6 -  0.138302 seconds
+Time used in packet no.7 -  0.138719 seconds
+Time used in packet no.8 -  0.137872 seconds
+Time used in packet no.9 -  0.139735 seconds
+Time used in packet no.10 -  0.139639 seconds
+Time used in packet no.11 -  0.139825 seconds
+Time used in packet no.12 -  0.139673 seconds
+Time used in packet no.13 -  0.139588 seconds
+Time used in packet no.14 -  0.138856 seconds
+Time used in packet no.15 -  0.139199 seconds
+Time used in packet no.16 -  0.139255 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 5;  T_PROP: 10000; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.135217 seconds
+Time used in packet no.2 -  0.130543 seconds
+Time used in packet no.3 -  0.125364 seconds
+Time used in packet no.4 -  0.137145 seconds
+Time used in packet no.5 -  0.136134 seconds
+Time used in packet no.6 -  0.138235 seconds
+Time used in packet no.7 -  0.126714 seconds
+Time used in packet no.8 -  0.137617 seconds
+Time used in packet no.9 -  0.136888 seconds
+Time used in packet no.10 -  0.137966 seconds
+Time used in packet no.11 -  0.137406 seconds
+Time used in packet no.12 -  0.137069 seconds
+Time used in packet no.13 -  0.137858 seconds
+Time used in packet no.14 -  0.134417 seconds
+Time used in packet no.15 -  0.137439 seconds
+Time used in packet no.16 -  0.138870 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 10;  T_PROP: 0; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.133211 seconds
+Time used in packet no.2 -  0.140288 seconds
+Time used in packet no.3 -  0.139906 seconds
+Time used in packet no.4 -  0.279125 seconds
+Time used in packet no.5 -  0.137812 seconds
+Time used in packet no.6 -  0.276521 seconds
+Time used in packet no.7 -  0.138724 seconds
+Time used in packet no.8 -  0.137963 seconds
+Time used in packet no.9 -  0.138139 seconds
+Time used in packet no.10 -  0.138130 seconds
+Time used in packet no.11 -  0.137096 seconds
+Time used in packet no.12 -  0.137775 seconds
+Time used in packet no.13 -  0.137922 seconds
+Time used in packet no.14 -  0.137718 seconds
+Time used in packet no.15 -  0.137593 seconds
+Time used in packet no.16 -  0.137992 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 10;  T_PROP: 0; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.138246 seconds
+Time used in packet no.2 -  0.140656 seconds
+Time used in packet no.3 -  0.139703 seconds
+Time used in packet no.4 -  0.279123 seconds
+Time used in packet no.5 -  0.139856 seconds
+Time used in packet no.6 -  0.139812 seconds
+Time used in packet no.7 -  0.140372 seconds
+Time used in packet no.8 -  0.138793 seconds
+Time used in packet no.9 -  0.139839 seconds
+Time used in packet no.10 -  0.137735 seconds
+Time used in packet no.11 -  0.138107 seconds
+Time used in packet no.12 -  0.124331 seconds
+Time used in packet no.13 -  0.095900 seconds
+Time used in packet no.14 -  0.136262 seconds
+Time used in packet no.15 -  0.137943 seconds
+Time used in packet no.16 -  0.135526 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 0 data- 10;  T_PROP: 0; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.139068 seconds
+Time used in packet no.2 -  0.139444 seconds
+Time used in packet no.3 -  0.138965 seconds
+Time used in packet no.4 -  0.136998 seconds
+Time used in packet no.5 -  0.139525 seconds
+Time used in packet no.6 -  0.139879 seconds
+Time used in packet no.7 -  0.140429 seconds
+Time used in packet no.8 -  0.139578 seconds
+Time used in packet no.9 -  0.139842 seconds
+Time used in packet no.10 -  0.139837 seconds
+Time used in packet no.11 -  0.139817 seconds
+Time used in packet no.12 -  0.139532 seconds
+Time used in packet no.13 -  0.139546 seconds
+Time used in packet no.14 -  0.139308 seconds
+Time used in packet no.15 -  0.139586 seconds
+Time used in packet no.16 -  0.139544 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 10 data- 10;  T_PROP: 0; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.136974 seconds
+Time used in packet no.2 -  0.138902 seconds
+Time used in packet no.3 -  0.137865 seconds
+Time used in packet no.4 -  0.137926 seconds
+Time used in packet no.5 -  0.138025 seconds
+Time used in packet no.6 -  0.138213 seconds
+Time used in packet no.7 -  0.277705 seconds
+Time used in packet no.8 -  0.137952 seconds
+Time used in packet no.9 -  0.138114 seconds
+Time used in packet no.10 -  0.136854 seconds
+Time used in packet no.11 -  0.138138 seconds
+Time used in packet no.12 -  0.137944 seconds
+Time used in packet no.13 -  0.138074 seconds
+Time used in packet no.14 -  0.137731 seconds
+Time used in packet no.15 -  0.274525 seconds
+Time used in packet no.16 -  0.135746 seconds
+-----------------
+
+
+STAT FIELDS
+ FER: bcc- 10 data- 10;  T_PROP: 0; BAUDRATE: 9600; PACKET SIZE: 512;
+
+Time used in packet no.1 -  0.137250 seconds
+Time used in packet no.2 -  0.139533 seconds
+Time used in packet no.3 -  0.137011 seconds
+Time used in packet no.4 -  0.138639 seconds
+Time used in packet no.5 -  0.139773 seconds
+Time used in packet no.6 -  0.137947 seconds
+Time used in packet no.7 -  5.247442 seconds
+Time used in packet no.8 -  0.138015 seconds
+Time used in packet no.9 -  0.138244 seconds
+Time used in packet no.10 -  0.138287 seconds
+Time used in packet no.11 -  0.276496 seconds
+Time used in packet no.12 -  0.276154 seconds
+Time used in packet no.13 -  0.137914 seconds
+Time used in packet no.14 -  0.137594 seconds
+Time used in packet no.15 -  0.276009 seconds
+Time used in packet no.16 -  0.139221 seconds
+-----------------
+
+
