@@ -22,6 +22,23 @@ int getHostInfo(rfc1738url * url){
     return 0;
 }
 
+int sendFTPCmd(char * cmd){
+
+    char *ptr = cmd;
+    size_t length = strlen(ptr);
+    while (length > 0){
+        int i = send(control_socket_fd, ptr, length, 0);
+        if (i < 1) {
+            printf("Failed to write to socket:%d\n", i);
+            return i;
+        }
+        ptr += i;
+        length -= i;
+    }
+
+    return 0;
+}
+
 int rcvFTPReply(char *reply){
     
     char *tmp;
@@ -85,6 +102,55 @@ int openControlSocket(rfc1738url * url){
     }
 
     printf("Control socket connected\n");
+
+    return 0;
+}
+
+int login(rfc1738url *url){
+
+    char reply[4];
+
+    char username[255];
+    char password[255];
+    if(url->username[0] != '\0') strcpy(username, url->username);
+    else {
+        printf("USERNAME:");
+        scanf("%s", username);
+    }
+
+    char *user = malloc(20 + strlen(username));
+    sprintf(user, "USER %s\r\n", username);
+    int r = sendFTPCmd(user);
+
+    free(user);
+    if(r) return -1;
+    
+
+    rcvFTPReply(reply);
+    if (strcmp(reply, REQPASSW_C) != 0){
+        printf("Unexpected reply from server: %s\n", reply);
+        return -2;
+    }
+
+    if(url->password[0] != '\0') strcpy(password, url->username);
+    else {
+        printf("PASSWORD:");
+        scanf("%s", password);
+    }
+
+    char *pass = malloc(20 + strlen(username));
+    sprintf(pass, "PASS %s\r\n", password);
+    r = sendFTPCmd(pass);
+    free(pass);
+    if(r) return -3;
+
+    rcvFTPReply(reply);
+    if (strcmp(reply, LOGIN_C) != 0){
+        printf("Unexpected reply from server: %s\n", reply);
+        return -2;
+    }
+
+    printf("LOGGED IN\n");
 
     return 0;
 }

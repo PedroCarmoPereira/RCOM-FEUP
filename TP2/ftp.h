@@ -11,7 +11,7 @@
 #define CONTROL_PORT    21
 
 #define SYSREADY_C      "220"
-#define USRLOGIN_C      "230"
+#define LOGIN_C         "230"
 #define REQPASSW_C      "331"
 #define PASV_C          "227"
 #define OPEN_C          "150"
@@ -32,5 +32,7 @@ int sendFTPCmd(char *cmd);
 int rcvFTPReply(char* reply);
 
 int openControlSocket(rfc1738url * url);
+
+int login(rfc1738url *url);
 
 #endif

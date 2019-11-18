@@ -21,5 +21,6 @@ int main(int argc, char const *argv[]){
     }
 
     openControlSocket(&url);
+    login(&url);
     return 0;
 }
