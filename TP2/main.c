@@ -24,11 +24,14 @@ int main(int argc, char const *argv[]){
     if (login(&url) != 0)
         return -1;
     if (passive() != 0)
-        return -1;
+        return -2;
+    puts("AAA");
     if (retrieve(url.url_path) != 0)
-        return -1;
-    if (receiveData(url.url_path) != 0)
-        return -1;
+        return -3;
+    puts("BBB");
+    if (receiveData("test.txt") != 0)
+        return -4;
+    puts("CCC");
 
     return 0;
 }

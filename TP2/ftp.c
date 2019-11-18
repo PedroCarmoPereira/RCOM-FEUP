@@ -114,11 +114,10 @@ int openDataSocket(char *ip, int port){
         printf("Failed to open ctrl socket, exiting;");
         return  -2;
     }
-    char * ipstr = inet_ntoa(*((struct in_addr *)ip));
     struct sockaddr_in in_addr = {0};
     in_addr.sin_family = AF_INET; // IPv4 address
     in_addr.sin_port = htons(port); // host byte order -> network byte order
-    in_addr.sin_addr.s_addr = inet_addr(ipstr); // to network format
+    in_addr.sin_addr.s_addr = inet_addr(ip); // to network format
     puts("Attempting to connect");
     int r = connect(data_socket_fd, (struct sockaddr*)&in_addr, sizeof(in_addr));
     if (r != 0){
@@ -233,15 +232,17 @@ int retrieve(char *filename) {
 }
 
 int receiveData(char *filename) {
-
+    
+    puts("wrgqowergn");
     FILE* file = fopen(filename, "w");
 
     int r;
     char buffer[1024];
-
+    puts("wrgqowergn");
     do {
         r = read(data_socket_fd, buffer, 1024);
         fwrite(buffer, r, 1, file);
+        printf("R:%d\n", r);
     } while (r != 0);
 
     fclose(file);
