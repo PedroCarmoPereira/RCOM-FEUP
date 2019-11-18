@@ -5,6 +5,7 @@
 #include <netinet/in.h> 
 #include <arpa/inet.h>
 #include <string.h>
+#include <unistd.h> 
 
 #include "rfc1738url.h"
 #include "ftp.h"
@@ -15,7 +16,7 @@ int getHostInfo(rfc1738url * url){
     host = gethostbyname(url->hostname);
     
     if(host == NULL){
-        printf("Could not resolver hostame:%s", url->hostname);
+        printf("Could not resolve hostame:%s", url->hostname);
         return -1;
     }
 
@@ -106,6 +107,29 @@ int openControlSocket(rfc1738url * url){
     return 0;
 }
 
+int openDataSocket(char *ip, int port){
+
+    int data_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if (data_socket_fd == -1){
+        printf("Failed to open ctrl socket, exiting;");
+        return  -2;
+    }
+    char * ipstr = inet_ntoa(*((struct in_addr *)ip));
+    struct sockaddr_in in_addr = {0};
+    in_addr.sin_family = AF_INET; // IPv4 address
+    in_addr.sin_port = htons(port); // host byte order -> network byte order
+    in_addr.sin_addr.s_addr = inet_addr(ipstr); // to network format
+    puts("Attempting to connect");
+    int r = connect(data_socket_fd, (struct sockaddr*)&in_addr, sizeof(in_addr));
+    if (r != 0){
+        printf("Failed to connect data socket, returned %d; exiting;\n", r);
+        return  -3;
+    }
+    puts("Connected");
+    return data_socket_fd;
+}
+
+
 int login(rfc1738url *url){
 
     char reply[4];
@@ -128,7 +152,7 @@ int login(rfc1738url *url){
 
     rcvFTPReply(reply);
     if (strcmp(reply, REQPASSW_C) != 0){
-        printf("Unexpected reply from server: %s\n", reply);
+        printf("Unexpected reply from server on username: %s\n", reply);
         return -2;
     }
 
@@ -146,11 +170,81 @@ int login(rfc1738url *url){
 
     rcvFTPReply(reply);
     if (strcmp(reply, LOGIN_C) != 0){
-        printf("Unexpected reply from server: %s\n", reply);
+        printf("Unexpected reply from server on password: %s\n", reply);
         return -2;
     }
 
     printf("LOGGED IN\n");
+
+    return 0;
+}
+
+int passive() {
+    char pasv[6];
+    char reply[256];
+
+    char ip[64];
+    int port;
+
+    sprintf(pasv, "pasv\n\0");
+
+    if (sendFTPCmd(pasv) != 0)
+        return -1;
+    puts("pasv");
+
+    /*if (rcvFTPReply(reply) != 0)
+        return -1;*/
+
+    int rd = read(control_socket_fd, reply, 256);
+    reply[rd] = '\0';
+    printf("Reply: %s\n", reply);
+    int ret;
+    unsigned int ipfield1, ipfield2, ipfield3, ipfield4;
+    int portFactor, portRemainder;
+    sscanf(reply, "%d Entering Passive Mode (%d,%d,%d,%d,%d,%d)", &ret, &ipfield1, &ipfield2, &ipfield3, &ipfield4, &portFactor, &portRemainder);
+    
+    /*if (ret != PASV_C)
+        return -1;*/
+
+    sprintf(ip, "%d.%d.%d.%d", ipfield1, ipfield2, ipfield3, ipfield4);
+   
+    port = portFactor * 256 + portRemainder;
+
+    printf("Ret: %d \nIp: %s \nPort: %d\n", ret, ip, port);
+    data_socket_fd = openDataSocket(ip, port);  
+
+    if (data_socket_fd <= 0)
+        return -1;  
+    
+    return 0;
+}
+
+int retrieve(char *filename) {
+    char retrieve[1024];
+
+    sprintf(retrieve, "retr %s\n\0", filename);
+    
+    if (sendFTPCmd(retrieve) != 0)
+        return -1;
+    
+    puts("retr");
+
+    return 0;
+}
+
+int receiveData(char *filename) {
+
+    FILE* file = fopen(filename, "w");
+
+    int r;
+    char buffer[1024];
+
+    do {
+        r = read(data_socket_fd, buffer, 1024);
+        fwrite(buffer, r, 1, file);
+    } while (r != 0);
+
+    fclose(file);
 
     return 0;
 }

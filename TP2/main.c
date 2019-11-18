@@ -21,6 +21,14 @@ int main(int argc, char const *argv[]){
     }
 
     openControlSocket(&url);
-    login(&url);
+    if (login(&url) != 0)
+        return -1;
+    if (passive() != 0)
+        return -1;
+    if (retrieve(url.url_path) != 0)
+        return -1;
+    if (receiveData(url.url_path) != 0)
+        return -1;
+
     return 0;
 }

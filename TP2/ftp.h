@@ -19,6 +19,7 @@
 
 struct hostent * host;
 int control_socket_fd;
+int data_socket_fd;
 FILE * control_socket_stream;
 
 static inline int getServerPort(int n1, int n2){
@@ -35,4 +36,9 @@ int openControlSocket(rfc1738url * url);
 
 int login(rfc1738url *url);
 
+int passive();
+
+int retrieve(char *filename);
+
+int receiveData(char *filename);
 #endif

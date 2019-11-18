@@ -1,2 +1,6 @@
 .vscode/
 TP1/.vs/
+
+*.xlsx
+*.docx
+*.png
