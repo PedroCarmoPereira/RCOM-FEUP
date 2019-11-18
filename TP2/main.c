@@ -12,18 +12,14 @@ int main(int argc, char const *argv[]){
         return -1;
     }
 
-    rfc1738url params;
-    int r = parse_url(argv[1], &params);
+    rfc1738url url;
+    int r = parse_url(argv[1], &url);
 
     if(r){
         printf("Unexpected url format, error_code:%d\n", r);
         return -2;
     }
 
-    getHostInfo(&params);
-    printf("Host name  : %s\n", host->h_name);
-    printf("IP Address : %s\n",inet_ntoa(*((struct in_addr *)host->h_addr)));
-
-
+    openControlSocket(&url);
     return 0;
 }

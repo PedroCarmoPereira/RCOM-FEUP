@@ -27,12 +27,10 @@ static inline int getServerPort(int n1, int n2){
 
 int getHostInfo(rfc1738url * url);
 
-/*
-int sendFTPMsg(char *msg);
+int sendFTPCmd(char *cmd);
 
-int rcvFTPMsg();
-*/
+int rcvFTPReply(char* reply);
 
-//int openControlSocket(rfc1738url * url);
+int openControlSocket(rfc1738url * url);
 
 #endif
