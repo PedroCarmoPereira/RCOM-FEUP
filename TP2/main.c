@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "rfc1738parser.h"
+#include "ftp.h"
+#include "rfc1738url.h"
 
 int main(int argc, char const *argv[]){
 
@@ -11,14 +12,18 @@ int main(int argc, char const *argv[]){
         return -1;
     }
 
-    ftp_params test;
-    int r = parse_url(argv[1], &test);
-    printf("PARSER RET:%d\n", r);    
-    printf("PROTOCOL:%s\n", test.protocol);
-    if(test.username[0] |= '\0') printf("USERNAME:%s\n", test.username);
-    if(test.password[0] |= '\0') printf("PASSWORD:%s\n", test.password);
-    printf("HOSTNAME:%s\n", test.hostname);
-    printf("URL PATH:%s\n", test.url_path);
+    rfc1738url params;
+    int r = parse_url(argv[1], &params);
+
+    if(r){
+        printf("Unexpected url format, error_code:%d\n", r);
+        return -2;
+    }
+
+    getHostInfo(&params);
+    printf("Host name  : %s\n", host->h_name);
+    printf("IP Address : %s\n",inet_ntoa(*((struct in_addr *)host->h_addr)));
+
 
     return 0;
 }
