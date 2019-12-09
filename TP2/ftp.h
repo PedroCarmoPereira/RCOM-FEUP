@@ -34,6 +34,8 @@ int rcvFTPReply(char* reply);
 
 int openControlSocket(rfc1738url * url);
 
+void getFilenameFromURL(rfc1738url * url, char * filename);
+
 int login(rfc1738url *url);
 
 int passive();

@@ -10,7 +10,6 @@
 #include "rfc1738url.h"
 #include "ftp.h"
 
-
 int getHostInfo(rfc1738url * url){
     
     host = gethostbyname(url->hostname);
@@ -107,6 +106,29 @@ int openControlSocket(rfc1738url * url){
     return 0;
 }
 
+/*AUX: SHOULDN'T THIS BE DEFINED SOMEWHERE? LIKE STRING.H?*/
+void strrev(char * str){
+    char tmp;
+    int n = strlen(str);
+    for(int i = 0; i < n / 2; i++){
+        tmp = str[i];
+        str[i] = str[n - i - 1];
+        str[n - i - 1] = tmp;
+    }
+}
+
+void getFilenameFromURL(rfc1738url *url, char * filename){
+    int length = strlen(url->url_path);
+    int i = length - 1;
+    int j = 0;
+    while(i >= 0 && url->url_path[i] != '/'){
+        filename[j] = url->url_path[i];
+        i--; j++;
+    }
+    filename[j] = '\0';
+    strrev(filename);
+}
+
 int openDataSocket(char *ip, int port){
 
     int data_socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -179,13 +201,13 @@ int login(rfc1738url *url){
 }
 
 int passive() {
-    char pasv[6];
+    char pasv[7];
     char reply[256];
 
     char ip[64];
     int port;
 
-    sprintf(pasv, "pasv\n\0");
+    sprintf(pasv, "pasv\r\n");
 
     if (sendFTPCmd(pasv) != 0)
         return -1;
@@ -221,7 +243,7 @@ int passive() {
 int retrieve(char *filename) {
     char retrieve[1024];
 
-    sprintf(retrieve, "retr %s\n\0", filename);
+    sprintf(retrieve, "retr %s\r\n", filename);
     
     if (sendFTPCmd(retrieve) != 0)
         return -1;
@@ -232,13 +254,9 @@ int retrieve(char *filename) {
 }
 
 int receiveData(char *filename) {
-    
-    puts("wrgqowergn");
     FILE* file = fopen(filename, "w");
-
     int r;
     char buffer[1024];
-    puts("wrgqowergn");
     do {
         r = read(data_socket_fd, buffer, 1024);
         fwrite(buffer, r, 1, file);
