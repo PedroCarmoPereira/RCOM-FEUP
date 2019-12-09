@@ -55,7 +55,7 @@ int parse_url(const char * url_str, rfc1738url * params){
             params->hostname[j] = url_str[i];
             i++; j++;
         }
-
+        params->hostname[j] = '\0';
         if(i >= length) return -5;
 
         j = 0; i++;
