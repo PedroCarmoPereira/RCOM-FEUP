@@ -63,6 +63,7 @@ int parse_url(const char * url_str, rfc1738url * params){
             params->url_path[j] = url_str[i];
             j++; i++;
         }
+	params->url_path[j] = '\0';
     }
 
     return 0;

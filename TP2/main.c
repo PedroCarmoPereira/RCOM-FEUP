@@ -22,6 +22,7 @@ int main(int argc, char const *argv[]){
     char filename[255];
     getFilenameFromURL(&url, filename);
     openControlSocket(&url);
+
     if (login(&url) != 0)
         return -1;
     if (passive() != 0)
